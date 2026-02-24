@@ -1,0 +1,286 @@
+/* .led-frame {
+  background: #000;
+  border-radius: 6px;
+  padding: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+}
+
+scrolling text
+.led-text {
+  font-family: "Courier New", monospace;
+  font-size: 25px;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-block;
+  animation: scroll-left 18s linear infinite;
+  text-shadow:
+    0 0 4px currentColor,
+    0 0 8px currentColor;
+}
+
+animation
+@keyframes scroll-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+} */
+/* LedDisplay.css */
+/* ================= LED FRAME ================= */
+/* .led-frame {
+  background: radial-gradient(circle at center, #020202 0%, #000 70%);
+  border-radius: 12px;
+  padding: 14px;
+  border: 2px solid #111;
+  box-shadow:
+    inset 0 0 18px rgba(0, 0, 0, 0.95),
+    0 0 22px rgba(0, 0, 0, 0.8);
+  font-family: "Courier New", monospace;
+  color: #ff3b3b;
+  position: relative;
+  overflow: hidden;
+} */
+
+/* DOT MATRIX OVERLAY */
+/* .led-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1.5px);
+  background-size: 4px 4px;
+  opacity: 0.35;
+  pointer-events: none;
+} */
+
+/* ================= HEADER ================= */
+/* .led-header {
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow:
+    0 0 4px currentColor,
+    0 0 10px currentColor,
+    0 0 18px rgba(255, 60, 60, 0.8);
+}
+
+.led-sub {
+  font-size: 16px;
+  opacity: 0.9;
+  margin-bottom: 6px;
+  text-shadow: 0 0 4px currentColor;
+} */
+
+/* ================= MARQUEE ================= */
+/* .led-marquee {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  margin-top: 8px;
+  position: relative;
+}
+
+.led-content {
+  display: inline-block;
+  padding-left: 100%;
+  animation: led-scroll 14s linear infinite;
+} */
+
+/* ================= BUS ROW ================= */
+/* .led-bus-row { */
+  /* font-size: 14px;
+  display: inline-block;
+  margin-right: 50px;
+  letter-spacing: 1px; */
+
+  /* DOT MATRIX GLOW */
+  /* text-shadow:
+    0 0 2px currentColor,
+    0 0 6px currentColor,
+    0 0 12px currentColor,
+    0 0 20px rgba(255, 80, 80, 0.8);
+
+  filter: brightness(1.2) contrast(1.2);
+  animation: led-flicker 2.8s infinite;
+} */
+
+/* ETA highlight */
+/* .led-time {
+  color: #ffcc00;
+  font-weight: 700;
+  margin-left: 6px;
+  text-shadow:
+    0 0 4px #ffcc00,
+    0 0 10px #ffcc00,
+    0 0 18px rgba(255, 204, 0, 0.8);
+} */
+
+/* ================= ANIMATIONS ================= */
+/* @keyframes led-scroll {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+} */
+
+/* Old LED flicker */
+/* @keyframes led-flicker {
+  0% { opacity: 1; }
+  92% { opacity: 1; }
+  94% { opacity: 0.85; }
+  96% { opacity: 1; }
+  98% { opacity: 0.9; }
+  100% { opacity: 1; }
+} */
+
+
+/* ================= LED FRAME ================= */
+.led-frame {
+  background: radial-gradient(circle at center, #020202 0%, #000 70%);
+  border-radius: 12px;
+  padding: 14px;
+  border: 2px solid #111;
+  box-shadow:
+    inset 0 0 18px rgba(0, 0, 0, 0.95),
+    0 0 22px rgba(0, 0, 0, 0.85);
+  font-family: "Courier New", monospace;
+  color: #ffcc00; /* YELLOW BASE */
+  position: relative;
+  overflow: hidden;
+}
+
+/* ================= DOT MATRIX OVERLAY ================= */
+.led-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(rgba(255, 204, 0, 0.18) 1px, transparent 1.5px);
+  background-size: 4px 4px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ================= HEADER ================= */
+.led-header {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-shadow:
+    0 0 4px #ffcc00,
+    0 0 10px #ffcc00,
+    0 0 18px rgba(255, 204, 0, 0.9);
+}
+
+.led-sub {
+  font-size: 15px;
+  opacity: 0.9;
+  margin-bottom: 10px;
+  text-shadow:
+    0 0 4px #ffcc00;
+}
+
+/* ================= BUS LIST ================= */
+.led-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ================= BUS ROW ================= */
+.led-bus-row {
+  display: grid;
+  grid-template-columns: 5ch 2fr 1fr 2fr ; /* 4 columns: Name | Route | Status | Number */
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px dotted rgba(255, 204, 0, 0.35);
+  text-shadow:
+    0 0 2px #ffcc00,
+    0 0 6px #ffcc00,
+    0 0 12px #ffcc00,
+    0 0 20px rgba(255, 204, 0, 0.85);
+  filter: brightness(1.15) contrast(1.2);
+  white-space: nowrap;
+}
+
+/* ================= HEADER ROW ================= */
+.led-header-row {
+  font-weight: bold;
+  border-bottom: 2px solid #ffcc00;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ================= COLUMNS ================= */
+.col {
+  padding: 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.col-name {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.col-route {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.col-status {
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffe066;
+  text-shadow:
+    0 0 6px #ffe066,
+    0 0 14px #ffcc00,
+    0 0 26px rgba(255, 204, 0, 1);
+}
+
+.col-number {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffcc00;
+  text-shadow:
+    0 0 8px #ffcc00,
+    0 0 18px rgba(255, 204, 0, 0.95);
+}
+
+/* ================= STATUS STATES ================= */
+.arrived {
+  color: #00ff66;
+  text-shadow:
+    0 0 6px #00ff66,
+    0 0 14px rgba(0, 255, 102, 0.9);
+}
+
+.will-arrive {
+  color: #ffe066;
+}
+
+/* ================= EMPTY STATE ================= */
+.led-empty {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.75;
+  text-shadow:
+    0 0 4px #ffcc00;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .led-bus-row {
+    grid-template-columns: 1.5fr 2.5fr 1.5fr 1fr;
+    font-size: 13px;
+  }
+
+  .col-number {
+    font-size: 16px;
+  }
+}

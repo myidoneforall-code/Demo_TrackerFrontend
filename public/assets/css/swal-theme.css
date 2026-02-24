@@ -1,0 +1,36 @@
+/* ============================= */
+/* SWEETALERT DARK THEME */
+/* ============================= */
+
+.swal-dark {
+  background-color: #0f172a !important;
+  color: #e5e7eb !important;
+  border-radius: 14px;
+}
+
+/* Title & text */
+.swal-dark .swal2-title,
+.swal-dark .swal2-html-container {
+  color: #e5e7eb !important;
+}
+
+/* Checkbox text */
+.swal-dark label {
+  color: #e5e7eb !important;
+}
+
+/* Buttons */
+.swal-dark .swal2-confirm {
+  background-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+
+.swal-dark .swal2-cancel {
+  background-color: #f87171 !important;
+  color: #ffffff !important;
+}
+
+/* Checkbox accent */
+.swal-dark input[type="checkbox"] {
+  accent-color: #38bdf8;
+}

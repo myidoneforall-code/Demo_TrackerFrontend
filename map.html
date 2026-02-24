@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3 Point Entry Map</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    /* ===== IMPORTANT FIX ===== */
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      display: flex;
+      background: #eef2f7;
+    }
+
+    /* ===== LEFT PANEL ===== */
+    .panel {
+      width: 340px;
+      padding: 18px;
+      background: #ffffff;
+      border-right: 1px solid #e0e0e0;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
+      box-sizing: border-box;
+    }
+
+    .panel h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #212529;
+    }
+
+    .stop-row {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .stop-row label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #495057;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .stop-row input {
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .stop-row input:focus {
+      outline: none;
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+    }
+
+    .update-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .update-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(13, 110, 253, 0.35);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 12px;
+      line-height: 1.4;
+    }
+
+    /* ===== MAP ===== */
+    #map {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== LEFT PANEL ===== -->
+<div class="panel">
+  <h3>📍 Enter 3 Stops</h3>
+
+  <div id="inputs"></div>
+
+  <button class="update-btn" onclick="updateMap()">
+    Update Map
+  </button>
+
+  <div class="hint">
+    • Enter Latitude & Longitude  
+    <br>
+    • Click <b>Update Map</b> to plot markers
+  </div>
+</div>
+
+<!-- ===== MAP ===== -->
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  /* ================= STATE ================= */
+  var markers = [];
+
+  /* ================= MAP INIT ================= */
+  var map = L.map("map").setView([11.0168, 76.9558], 13);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
+
+  /* ================= INPUT UI ================= */
+  var inputsDiv = document.getElementById("inputs");
+
+  for (var i = 0; i < 3; i++) {
+    inputsDiv.innerHTML +=
+      '<div class="stop-row">' +
+        '<label>Stop ' + (i + 1) + '</label>' +
+        '<input id="lat' + i + '" placeholder="Latitude" />' +
+        '<input id="lng' + i + '" placeholder="Longitude" />' +
+      '</div>';
+  }
+
+  /* ================= UPDATE MAP ================= */
+  function updateMap() {
+    // Clear old markers
+    markers.forEach(function (m) {
+      map.removeLayer(m);
+    });
+    markers = [];
+
+    var bounds = [];
+
+    for (var i = 0; i < 3; i++) {
+      var lat = parseFloat(document.getElementById("lat" + i).value);
+      var lng = parseFloat(document.getElementById("lng" + i).value);
+
+      if (isNaN(lat) || isNaN(lng)) continue;
+
+      var marker = L.marker([lat, lng])
+        .addTo(map)
+        .bindPopup("Stop " + (i + 1));
+
+      markers.push(marker);
+      bounds.push([lat, lng]);
+    }
+
+    if (bounds.length > 0) {
+      map.fitBounds(bounds);
+    }
+  }
+</script>
+
+</body>
+</html>

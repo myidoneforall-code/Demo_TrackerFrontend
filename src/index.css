@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+}
+html {
+  overflow-y: scroll;
+}
+
+@media (min-width: 1200px) {
+  .col-xl-2-4 {
+    flex: 0 0 auto;
+    width: 20%;
+  }
+}
+
