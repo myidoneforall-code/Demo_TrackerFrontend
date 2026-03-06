@@ -317,23 +317,28 @@ const NumberWizard = ({ allData, setAllData }) => {
   const [loadingStops, setLoadingStops] = useState(false);  
   
 
-  const [formData, setFormData] = useState({
+ const [formData, setFormData] = useState({
     deviceId: '',
     name: '',
     busNumber: '',
     type: '',
     totalTrips: 1,
+    forwardTrips: 1,
     state: '',
     district: '',
+
     forwardRoute: {
       from: '',
       to: '',
-      stops: ['']
+      stops: [''],
+      schedules: []   // ✅ NEW
     },
+
     returnRoute: {
       from: '',
       to: '',
-      stops: ['']
+      stops: [''],
+      schedules: []   // ✅ NEW
     }
   });
 
@@ -435,27 +440,63 @@ const NumberWizard = ({ allData, setAllData }) => {
       [route]: { ...formData[route], stops }
     });
   };
+  // ===== Schedule Functions =====
 
+const addSchedule = (route) => {
+  const schedules = [...formData[route].schedules];
 
+  schedules.push({
+    trip: schedules.length + 1,
+    startTime: ""
+  });
 
-  const buildAddBusPayload = (data) => {
-    return {
-      ...data,
-      forwardRoute: {
-        ...data.forwardRoute,
-        stops: data.forwardRoute.stops
-          .filter(s => s && s.trim() !== "")
-          .map(s => ({ name: s.trim() }))
-      },
-      returnRoute: {
-        ...data.returnRoute,
-        stops: data.returnRoute.stops
-          .filter(s => s && s.trim() !== "")
-          .map(s => ({ name: s.trim() }))
-      }
-    };
+  setFormData({
+    ...formData,
+    [route]: { ...formData[route], schedules }
+  });
+};
+
+const removeSchedule = (route, index) => {
+    const schedules = formData[route].schedules.filter((_, i) => i !== index);
+
+    setFormData({
+      ...formData,
+      [route]: { ...formData[route], schedules }
+    });
   };
 
+  const handleScheduleChange = (route, index, value) => {
+    const schedules = [...formData[route].schedules];
+
+    schedules[index].startTime = value;
+
+    setFormData({
+      ...formData,
+      [route]: { ...formData[route], schedules }
+    });
+  };
+
+
+
+const buildAddBusPayload = (data) => {
+  return {
+    ...data,
+    forwardRoute: {
+      ...data.forwardRoute,
+      stops: data.forwardRoute.stops
+        .filter(s => s && s.trim() !== "")
+        .map(s => s.trim()),   // ✅ FIX HERE
+      schedules: data.forwardRoute.schedules
+    },
+    returnRoute: {
+      ...data.returnRoute,
+      stops: data.returnRoute.stops
+        .filter(s => s && s.trim() !== "")
+        .map(s => s.trim()),   // ✅ FIX HERE
+      schedules: data.returnRoute.schedules
+    }
+  };
+};
 
 //   useEffect(() => {
 //   const getStops = async () => {
@@ -539,7 +580,7 @@ const NumberWizard = ({ allData, setAllData }) => {
                       </FormGroup>
                     </Col>
 
-                    <Col md={6}>
+                    {/* <Col md={6}>
                       <FormGroup>
                         <Label>Total Trips (per day) *</Label>
                         <Input
@@ -554,7 +595,7 @@ const NumberWizard = ({ allData, setAllData }) => {
                           <FormText color="danger">{errors.totalTrips}</FormText>
                         )}
                       </FormGroup>
-                    </Col>
+                    </Col> */}
 
                     <Col md={6}>
                       <FormGroup>
@@ -596,7 +637,7 @@ const NumberWizard = ({ allData, setAllData }) => {
               )}
 
               {/* STEP 2: FORWARD ROUTE */}
-              {step === 2 && (
+              {/* {step === 2 && (
                 <Form>
                   <h5 className="mb-3 border-bottom pb-2">🚍 Forward Route</h5>
                   <Row>
@@ -642,6 +683,126 @@ const NumberWizard = ({ allData, setAllData }) => {
                     </Col>
                   </Row>
                 </Form>
+              )} */}
+              {step === 2 && (
+                <Form>
+                  <h5 className="mb-3 border-bottom pb-2">🚍 Forward Route</h5>
+
+                  {/* Row 1 */}
+                  <Row>
+                    <Col md={6}>
+                      <Input
+                        placeholder="From"
+                        value={formData.forwardRoute.from}
+                        onChange={e => handleRouteChange('forwardRoute', 'from', e.target.value)}
+                        invalid={!!errors.forwardFrom}
+                      />
+                    </Col>
+
+                    <Col md={6}>
+                      <Input
+                        placeholder="To"
+                        value={formData.forwardRoute.to}
+                        onChange={e => handleRouteChange('forwardRoute', 'to', e.target.value)}
+                        invalid={!!errors.forwardTo}
+                      />
+                    </Col>
+                  </Row>
+
+                  {/* Row 2 - Trips */}
+                  <Row className="mt-3">
+                    <Col md={6}>
+                      <FormGroup>
+                        <Label>Total Trips (per day) *</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          id="forwardTrips"
+                          value={formData.forwardTrips}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+
+                  {/* Row 3 - Stops */}
+                  <Row className="mt-3">
+                    <Col xs={12}>
+                      <Label>Stops</Label>
+                      {formData.forwardRoute.stops.map((stop, i) => (
+                        <div key={i} className="d-flex mb-2">
+                          <Input
+                            type="select"
+                            value={stop}
+                            onChange={e => handleStopChange('forwardRoute', i, e.target.value)}
+                          >
+                            <option value="">
+                              {loadingStops ? "Loading..." : "Select Stop"}
+                            </option>
+
+                            {filteredStops.map(s => (
+                              <option key={s._id} value={s.stopName}>
+                                {s.stopName}
+                              </option>
+                            ))}
+                          </Input>
+
+                          <Button color="danger" onClick={() => removeStop('forwardRoute', i)}>
+                            X
+                          </Button>
+                        </div>
+                      ))}
+
+                      <Button color="secondary" onClick={() => addStop('forwardRoute')}>
+                        Add Stop
+                      </Button>
+                    </Col>
+                  </Row>
+
+                  {/* Forward Schedule */}
+                  <Row className="mt-3">
+                    <Col xs={12}>
+                      <Label>Forward Trip Schedule</Label>
+
+                      {formData.forwardRoute.schedules.map((trip, i) => (
+                        <div key={i} className="d-flex mb-2">
+
+                          <Input
+                            type="time"
+                            value={trip.startTime}
+                            onChange={(e) =>
+                              handleScheduleChange("forwardRoute", i, e.target.value)
+                            }
+                          />
+
+                          <Button
+                            color="danger"
+                            onClick={() => removeSchedule("forwardRoute", i)}
+                          >
+                            X
+                          </Button>
+
+                        </div>
+                      ))}
+
+                      <Button
+                        color="secondary"
+                        onClick={() => addSchedule("forwardRoute")}
+                      >
+                        Add Trip
+                      </Button>
+                    </Col>
+                  </Row>
+
+                  {/* Row 4 - Buttons */}
+                  <Row className="mt-3">
+                    <Col className="text-end">
+                      <Button className="me-2" onClick={handlePrev}>Previous</Button>
+                      <Button onClick={handleNext}>Next</Button>
+                    </Col>
+                  </Row>
+
+                </Form>
               )}
 
               {/* STEP 3: RETURN ROUTE */}
@@ -659,11 +820,10 @@ const NumberWizard = ({ allData, setAllData }) => {
                         onChange={e => handleRouteChange('returnRoute', 'to', e.target.value)}
                         invalid={!!errors.returnTo} />
                     </Col>
-
                     <Col xs={12} className="mt-3">
                       <Label>Stops</Label>
                       {formData.returnRoute.stops.map((stop, i) => (
-                        <div key={i} className="d-flex mb-2">
+                        <div key={i} className="d-flex mb-2 ">
                           <Input
                             type="select"
                             value={stop}
@@ -684,6 +844,40 @@ const NumberWizard = ({ allData, setAllData }) => {
                       ))}
                       <Button color="secondary" onClick={() => addStop('returnRoute')}>Add Stop</Button>
                     </Col>
+                      {/* Forward Schedule */}
+                  <Row className="mt-3">
+                    <Col xs={12}>
+                      <Label>Return Trip Schedule</Label>
+
+                      {formData.returnRoute.schedules.map((trip, i) => (
+                        <div key={i} className="d-flex mb-2">
+
+                          <Input
+                            type="time"
+                            value={trip.startTime}
+                            onChange={(e) =>
+                              handleScheduleChange("returnRoute", i, e.target.value)
+                            }
+                          />
+
+                          <Button
+                            color="danger"
+                            onClick={() => removeSchedule("returnRoute", i)}
+                          >
+                            X
+                          </Button>
+
+                        </div>
+                      ))}
+
+                      <Button
+                        color="secondary"
+                        onClick={() => addSchedule("returnRoute")}
+                      >
+                        Add Trip
+                      </Button>
+                    </Col>
+                  </Row>
 
                     <Col className="text-end mt-3">
                       <Button className="me-2" onClick={handlePrev}>Previous</Button>
@@ -696,6 +890,8 @@ const NumberWizard = ({ allData, setAllData }) => {
                             try {
                               const payload = buildAddBusPayload(formData);
 
+                              console.log("payload",payload);
+
                               const res = await addBusApi(payload);
 
                               setAllData(prev => [res.bus, ...prev]);
@@ -706,10 +902,11 @@ const NumberWizard = ({ allData, setAllData }) => {
                                 busNumber: '',
                                 type: '',
                                 totalTrips: 1,
+                                forwardTrips: 1,
                                 state: '',
                                 district: '',
-                                forwardRoute: { from: '', to: '', stops: [''] },
-                                returnRoute: { from: '', to: '', stops: [''] }
+                                forwardRoute: { from: '', to: '', stops: [''], schedules: [] },
+                                returnRoute: { from: '', to: '', stops: [''], schedules: [] }
                               });
 
                               setStep(1);
@@ -725,9 +922,6 @@ const NumberWizard = ({ allData, setAllData }) => {
                         >
                           Submit
                         </Button>
-
-
-
                     </Col>
                   </Row>
                 </Form>
