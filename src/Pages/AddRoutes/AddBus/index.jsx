@@ -216,16 +216,13 @@ const AddBus = () => {
 
 
   const updateBus = async (bus) => {
-    try {
-      await updateBusApi(bus._id, bus); // your API call to update bus in DB
-      setAllData(prev =>
-        prev.map(b => (b._id === bus._id ? bus : b))
-      );
-    } catch (err) {
-      console.error("Failed to update bus:", err);
-      alert("Failed to update bus");
-    }
-  };
+      try {
+        await updateBusApi(bus._id, bus);   // 1️⃣ update backend
+        await loadBuses();                  // 2️⃣ reload fresh data
+      } catch (err) {
+        console.error("Failed to update bus:", err);
+      }
+    };
 
 
   

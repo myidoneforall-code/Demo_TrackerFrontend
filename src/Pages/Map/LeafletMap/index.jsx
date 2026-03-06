@@ -183,6 +183,7 @@
 
 
 
+
 import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -192,7 +193,15 @@ import { getStopsData } from "../../../Data/StopDetails/Stops.Details";
 const LeafletMap = () => {
   const mapRef = useRef(null);
   const stopsRef = useRef([]);
+  const markersLayerRef = useRef(null);
 
+  const liveBusMarkersRef = useRef({});
+  const previousPositionsRef = useRef({});
+  const animationRefs = useRef({});
+
+  /* =========================================================
+     1️⃣ MAP + STOPS (Independent)
+  ========================================================= */
   useEffect(() => {
     const map = L.map("interactivemap").setView([11.0168, 76.9558], 13);
     mapRef.current = map;
@@ -203,14 +212,15 @@ const LeafletMap = () => {
     }).addTo(map);
 
     const markersLayer = L.layerGroup().addTo(map);
+    markersLayerRef.current = markersLayer;
 
-    const busIcon = L.icon({
+    const stopIcon = L.icon({
       iconUrl:
         "https://cdn-icons-png.flaticon.com/512/1042/1042263.png",
       iconSize: [22, 22],
     });
 
-    // 🔥 Coordinate Control (Bottom Left)
+    // Coordinate Control
     const coordsControl = L.control({ position: "bottomleft" });
 
     coordsControl.onAdd = function () {
@@ -230,12 +240,10 @@ const LeafletMap = () => {
         `<b>X:</b> ${lng.toFixed(6)} &nbsp; | &nbsp; <b>Y:</b> ${lat.toFixed(6)}`;
     };
 
-    // Update on mouse move
     map.on("mousemove", function (e) {
       updateCoords(e.latlng.lat, e.latlng.lng);
     });
 
-    // ✅ Popup Content (Mandatory Fields Only)
     const createPopupContent = (stop) => `
       <div style="font-size:14px">
         <b>🚌 Stop:</b> ${stop.stopName}<br/>
@@ -253,12 +261,11 @@ const LeafletMap = () => {
 
         stops.forEach((stop) => {
           const marker = L.marker([stop.lat, stop.lon], {
-            icon: busIcon,
+            icon: stopIcon,
           }).addTo(markersLayer);
 
           marker.bindPopup(createPopupContent(stop));
 
-          // Update bottom coordinates on marker click
           marker.on("click", () => {
             updateCoords(stop.lat, stop.lon);
           });
@@ -275,6 +282,100 @@ const LeafletMap = () => {
     };
   }, []);
 
+  /* =========================================================
+     2️⃣ LIVE BUS + SMOOTH ANIMATION (Independent)
+  ========================================================= */
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const liveBusIcon = L.icon({
+      iconUrl:
+        "https://cdn-icons-png.flaticon.com/512/6395/6395324.png",
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    });
+
+    const animateMarker = (busId, marker, from, to) => {
+      if (animationRefs.current[busId]) {
+        clearInterval(animationRefs.current[busId]);
+      }
+
+      let progress = 0;
+      const duration = 3000;
+      const frameRate = 100;
+      const steps = duration / frameRate;
+      const stepSize = 1 / steps;
+
+      animationRefs.current[busId] = setInterval(() => {
+        progress += stepSize;
+        if (progress >= 1) progress = 1;
+
+        const newLat = from.lat + (to.lat - from.lat) * progress;
+        const newLon = from.lon + (to.lon - from.lon) * progress;
+
+        marker.setLatLng([newLat, newLon]);
+
+        if (progress === 1) {
+          clearInterval(animationRefs.current[busId]);
+        }
+      }, frameRate);
+    };
+
+    const fetchLiveBuses = async () => {
+      try {
+        const res = await fetch("http://localhost:4000/api/buses/live");
+        const data = await res.json();
+
+        data.forEach((bus) => {
+          if (!bus.location || !bus.location.coordinates) return;
+
+          const lon = bus.location.coordinates[0];
+          const lat = bus.location.coordinates[1];
+          const busId = bus.busId;
+
+          const newPosition = { lat, lon };
+
+          // New Bus
+          if (!liveBusMarkersRef.current[busId]) {
+            const marker = L.marker([lat, lon], {
+              icon: liveBusIcon,
+            }).addTo(mapRef.current);
+
+            marker.bindPopup(`
+              <b>${busId}</b><br/>
+              Speed: ${bus.speedKmph} km/h<br/>
+              Heading: ${bus.heading.toFixed(2)}
+            `);
+
+            liveBusMarkersRef.current[busId] = marker;
+            previousPositionsRef.current[busId] = newPosition;
+          }
+          // Existing Bus → Smooth Move
+          else {
+            const marker = liveBusMarkersRef.current[busId];
+            const prev = previousPositionsRef.current[busId];
+
+            if (prev) {
+              animateMarker(busId, marker, prev, newPosition);
+            }
+
+            previousPositionsRef.current[busId] = newPosition;
+          }
+        });
+      } catch (err) {
+        console.error("❌ Live Fetch Error:", err);
+      }
+    };
+
+    fetchLiveBuses();
+    const interval = setInterval(fetchLiveBuses, 3000);
+
+    return () => {
+      clearInterval(interval);
+      Object.values(animationRefs.current).forEach(clearInterval);
+    };
+  }, []);
+
   return (
     <Container fluid>
       <Row className="m-1">
@@ -287,7 +388,7 @@ const LeafletMap = () => {
         <Col lg={12}>
           <Card>
             <CardHeader>
-              <h5>Mandatory Stop Details</h5>
+              <h5>Mandatory Stop Details + Live Buses (Smooth)</h5>
             </CardHeader>
             <CardBody>
               <div
