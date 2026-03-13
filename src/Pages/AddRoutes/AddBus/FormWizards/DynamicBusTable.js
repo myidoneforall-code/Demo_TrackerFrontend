@@ -778,10 +778,21 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
                     <span className="badge bg-info text-dark">{to}</span>
                   </td>
 
-                  <td>
+                  {/* <td>
                     <span className="badge bg-success">
                       {bus.trips?.length || 0}
                     </span>
+                  </td> */}
+                  <td className="text-center">
+
+                    <span className="badge bg-primary me-1">
+                      F: {bus.trips?.filter(t => t.direction === "FORWARD").length || 0}
+                    </span>
+
+                    <span className="badge bg-warning text-dark">
+                      R: {bus.trips?.filter(t => t.direction === "RETURN").length || 0}
+                    </span>
+
                   </td>
 
                   <td className="text-center">

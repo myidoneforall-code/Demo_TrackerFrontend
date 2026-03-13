@@ -293,6 +293,7 @@ const AddBus = () => {
               <NumberWizard
                 allData={allData}
                 setAllData={setAllData}
+                reloadBuses={loadBuses}
               />
             </Col>
           </Row>

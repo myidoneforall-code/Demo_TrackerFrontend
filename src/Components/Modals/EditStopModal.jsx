@@ -60,10 +60,29 @@ export default function EditStopModal({ isOpen, toggle, stopData, onSave }) {
     { name: 'State 2', districts: ['District 2-1', 'District 2-2'] }
   ];
 
-  useEffect(() => {
-    setStop(stopData || {});
-    setErrors({});
-  }, [stopData]);
+  // useEffect(() => {
+  //   setStop(stopData || {});
+  //   setErrors({});
+  // }, [stopData]);
+useEffect(() => {
+  if (!stopData) return;
+
+  const normalizedStop = {
+    ...stopData,
+
+    // convert GeoJSON → form fields
+    lat: stopData.location?.coordinates?.[1] || "",
+    lon: stopData.location?.coordinates?.[0] || "",
+
+    // map DB fields
+    displayId: stopData.stopId || "",
+    direction: stopData.direction || "",
+    route: stopData.route || ""
+  };
+
+  setStop(normalizedStop);
+  setErrors({});
+}, [stopData]);
 
   const handleChange = (field, value) => {
     setStop(prev => ({ ...prev, [field]: value, ...(field === 'state' ? { district: '' } : {}) }));
@@ -83,9 +102,26 @@ export default function EditStopModal({ isOpen, toggle, stopData, onSave }) {
     return Object.keys(currentErrors).length === 0;
   };
 
+  // const handleSave = () => {
+  //   if (!validate()) return;
+  //   onSave(stop);
+  //   toggle();
+  // };
   const handleSave = () => {
     if (!validate()) return;
-    onSave(stop);
+
+    const payload = {
+      ...stop,
+      location: {
+        type: "Point",
+        coordinates: [
+          parseFloat(stop.lon),
+          parseFloat(stop.lat)
+        ]
+      }
+    };
+
+    onSave(payload);
     toggle();
   };
 

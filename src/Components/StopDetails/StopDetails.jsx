@@ -90,6 +90,7 @@
 //   );
 // }
 
+
 // StopDetails.jsx
 import React, { useState,useEffect } from "react";
 import {
@@ -121,6 +122,8 @@ export default function StopDetails() {
   useEffect(() => {
   const loadStops = async () => {
     const data = await getStopsData();
+
+    console.log("Stops from API:", data); 
     setStopDetails(data);
   };
 
@@ -129,7 +132,7 @@ export default function StopDetails() {
 
 
   const handleStopClick = (stop) => {
-    if (selectedStop?.displayId === stop.displayId) {
+    if (selectedStop?.stopId === stop.stopId) {
       setSelectedStop(null);
       setMatchingBuses([]);
       return;
@@ -140,8 +143,8 @@ export default function StopDetails() {
     const filteredBuses = buses
       .map((bus) => {
         const isLineMatch =
-          (stop.Route === "BLUE" && bus.isReturning === false) ||
-          (stop.Route === "YELLOW" && bus.isReturning === true);
+          (stop.route === "BLUE" && bus.isReturning === false) ||
+          (stop.route === "YELLOW" && bus.isReturning === true);
 
         if (!isLineMatch) return null;
 
@@ -170,8 +173,8 @@ export default function StopDetails() {
   // ================= FILTER STOPS =================
   const filteredStops = stopDetails.filter(
     (stop) =>
-      stop.displayId.toString().includes(displayIdFilter) &&
-      stop.stopName.toLowerCase().includes(stopNameFilter.toLowerCase())
+      String(stop.stopId || "").includes(displayIdFilter) &&
+      String(stop.stopName || "").toLowerCase().includes(stopNameFilter.toLowerCase())
   );
 
   // ================= OPEN EDIT MODAL =================
@@ -183,11 +186,13 @@ export default function StopDetails() {
   // ================= SAVE EDIT =================
   const saveEdit = () => {
     setStopDetails((prev) =>
-      prev.map((s) => (s.displayId === editStopData.displayId ? editStopData : s))
+      prev.map((s) => (s.stopId === editStopData.stopId ? editStopData : s))
     );
+
     setIsEditModalOpen(false);
-    if (selectedStop?.displayId === editStopData.displayId) {
-      setSelectedStop(editStopData); // update selected stop if editing it
+
+    if (selectedStop?.stopId === editStopData.stopId) {
+      setSelectedStop(editStopData);
     }
   };
 
@@ -232,12 +237,12 @@ export default function StopDetails() {
       {/* ================= STOP CARDS ================= */}
       <div className="row g-4 mx-auto">
         {filteredStops.map((stop, index) => {
-          const isYellow = stop.Route === "YELLOW";
+          const isYellow = stop.route === "YELLOW";
           const lineColor = isYellow ? "#ffc107" : "#0d6efd";
-          const isActive = selectedStop?.displayId === stop.displayId;
+          const isActive = selectedStop?.stopId === stop.stopId;
 
           return (
-            <div className="col-xl-4 col-lg-6 col-md-6" key={`${stop.displayId}-${index}`}>
+            <div className="col-xl-4 col-lg-6 col-md-6" key={`${stop.stopId}-${index}`}>
               <div
                 className={`card eshop-cards shadow-sm h-100 cursor-pointer ${isActive ? "selected-card" : ""}`}
                 style={{
@@ -279,12 +284,12 @@ export default function StopDetails() {
                       {stop.stopName}
                     </h6>
                   </div>
-                  <small>Display ID : {stop.displayId}</small>
+                  <small>Display ID : {stop.stopId}</small>
                   <small>Direction : {stop.direction}</small>
                   <br />
                   <div className="mb-2">
                     <span className="badge" style={{ backgroundColor: lineColor, color: "#000" }}>
-                      {stop.Route} Route
+                      {stop.route} Route
                     </span>
                   </div>
                 </div>
