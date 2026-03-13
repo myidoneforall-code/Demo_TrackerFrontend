@@ -121,6 +121,8 @@ import { fetchStopsApi } from "../../Services/api/addStop.api";
 export const getStopsData = async () => {
   try {
     const res = await fetchStopsApi();
+    console.log("leaflet fetching daa to show stops",res);
+    console.log("leaflet fetching daa to show stops",res.data);
 
     if (Array.isArray(res?.data)) return res.data;
     if (Array.isArray(res)) return res;

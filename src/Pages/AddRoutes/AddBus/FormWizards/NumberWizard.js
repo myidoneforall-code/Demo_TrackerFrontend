@@ -291,7 +291,7 @@ import {fetchStopsApi} from "../../../../Services/api/addStop.api";
 
 
 
-const NumberWizard = ({ allData, setAllData }) => {
+const NumberWizard = ({ allData, setAllData,reloadBuses }) => {
   
   
 
@@ -322,8 +322,8 @@ const NumberWizard = ({ allData, setAllData }) => {
     name: '',
     busNumber: '',
     type: '',
-    totalTrips: 1,
     forwardTrips: 1,
+    returnTrips: 1,
     state: '',
     district: '',
 
@@ -378,8 +378,8 @@ const NumberWizard = ({ allData, setAllData }) => {
       if (!formData.deviceId) currentErrors.deviceId = 'Device ID required';
       if (!formData.name) currentErrors.name = 'Bus name required';
       if (!formData.busNumber) currentErrors.busNumber = 'Bus number required';
-      if (!formData.totalTrips || formData.totalTrips < 1)
-        currentErrors.totalTrips = 'Total trips must be at least 1';
+      // if (!formData.totalTrips || formData.totalTrips < 1)
+      //   currentErrors.totalTrips = 'Total trips must be at least 1';
       if (!formData.state) currentErrors.state = 'State required';
       if (!formData.district) currentErrors.district = 'District required';
     }
@@ -443,6 +443,17 @@ const NumberWizard = ({ allData, setAllData }) => {
   // ===== Schedule Functions =====
 
 const addSchedule = (route) => {
+
+  const tripLimit =
+    route === "forwardRoute"
+      ? formData.forwardTrips
+      : formData.returnTrips;
+
+  if (formData[route].schedules.length >= tripLimit) {
+    alert("Schedules cannot exceed trip count");
+    return;
+  }
+
   const schedules = [...formData[route].schedules];
 
   schedules.push({
@@ -844,45 +855,60 @@ const buildAddBusPayload = (data) => {
                       ))}
                       <Button color="secondary" onClick={() => addStop('returnRoute')}>Add Stop</Button>
                     </Col>
-                      {/* Forward Schedule */}
-                  <Row className="mt-3">
-                    <Col xs={12}>
-                      <Label>Return Trip Schedule</Label>
-
-                      {formData.returnRoute.schedules.map((trip, i) => (
-                        <div key={i} className="d-flex mb-2">
-
+                                      {/* Row 2 - Trips */}
+                    <Row className="mt-3">
+                      <Col md={6}>
+                        <FormGroup>
+                          <Label>Total Trips (per day) *</Label>
                           <Input
-                            type="time"
-                            value={trip.startTime}
-                            onChange={(e) =>
-                              handleScheduleChange("returnRoute", i, e.target.value)
-                            }
+                            type="number"
+                            min="1"
+                            id="returnTrips"
+                            value={formData.returnTrips}
+                            onChange={handleChange}
                           />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+                      {/* Forward Schedule */}
+                    <Row className="mt-3">
+                      <Col xs={12}>
+                        <Label>Return Trip Schedule</Label>
 
-                          <Button
-                            color="danger"
-                            onClick={() => removeSchedule("returnRoute", i)}
-                          >
-                            X
-                          </Button>
+                        {formData.returnRoute.schedules.map((trip, i) => (
+                          <div key={i} className="d-flex mb-2">
 
-                        </div>
-                      ))}
+                            <Input
+                              type="time"
+                              value={trip.startTime}
+                              onChange={(e) =>
+                                handleScheduleChange("returnRoute", i, e.target.value)
+                              }
+                            />
 
-                      <Button
-                        color="secondary"
-                        onClick={() => addSchedule("returnRoute")}
-                      >
-                        Add Trip
-                      </Button>
-                    </Col>
-                  </Row>
+                            <Button
+                              color="danger"
+                              onClick={() => removeSchedule("returnRoute", i)}
+                            >
+                              X
+                            </Button>
+
+                          </div>
+                        ))}
+
+                        <Button
+                          color="secondary"
+                          onClick={() => addSchedule("returnRoute")}
+                        >
+                          Add Trip
+                        </Button>
+                      </Col>
+                    </Row>
 
                     <Col className="text-end mt-3">
                       <Button className="me-2" onClick={handlePrev}>Previous</Button>
                       {/* <Button color="success" onClick={() => console.log(formData)}>Submit</Button> */}
-                      <Button
+                      {/* <Button
                           color="success"
                           onClick={async () => {
                             if (!validateStep(step)) return;
@@ -917,6 +943,44 @@ const buildAddBusPayload = (data) => {
                               alert(
                                 err?.response?.data?.message || "Failed to save bus"
                               );
+                            }
+                          }}
+                        >
+                          Submit
+                        </Button> */}
+                        <Button
+                          color="success"
+                          onClick={async () => {
+                            if (!validateStep(step)) return;
+
+                            try {
+                              const payload = buildAddBusPayload(formData);
+
+                              console.log("payload", payload);
+
+                              await addBusApi(payload);
+
+                              await reloadBuses(); // ✅ Refresh table from backend
+
+                              setFormData({
+                                deviceId: '',
+                                name: '',
+                                busNumber: '',
+                                type: '',
+                                forwardTrips: 1,
+                                returnTrips: 1,
+                                state: '',
+                                district: '',
+                                forwardRoute: { from: '', to: '', stops: [''], schedules: [] },
+                                returnRoute: { from: '', to: '', stops: [''], schedules: [] }
+                              });
+
+                              setStep(1);
+                              setModalOpen(true);
+
+                            } catch (err) {
+                              console.error("❌ Failed to save bus:", err);
+                              alert(err?.response?.data?.message || "Failed to save bus");
                             }
                           }}
                         >

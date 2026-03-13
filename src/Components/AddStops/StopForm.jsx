@@ -655,18 +655,31 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
   if (!validateStep()) return;
 
   try {
-    const payload = formData[0];
+
+    const stop = formData[0];
+
+  const payload = {
+      stopName: stop.stopName,
+      stopId: stop.displayId,     // displayId → stopId
+      direction: stop.direction,
+      route: stop.route,
+      district: stop.district,
+      state: stop.state,
+      location: {
+        type: "Point",
+        coordinates: [
+          parseFloat(stop.lon),
+          parseFloat(stop.lat)
+        ]
+      }
+    };
 
     await addStopApi(payload);
 
-    // 🔥 Re-fetch from backend
-    const res = await fetchStopsApi();
-
-    const safeData = Array.isArray(res)
-      ? res
-      : [];
-
-    setAllStops(safeData);
+    // 🔥 fetch fresh DB data
+    const stops = await fetchStopsApi();
+    // console.log("stops data",stops);
+    setAllStops(stops);
 
     setFormData([{
       displayId: '',
@@ -679,11 +692,22 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
       state: ''
     }]);
 
-    alert("Stop saved successfully ✅");
+    Swal.fire({
+      icon: "success",
+      title: "Success",
+      text: "Stop saved successfully",
+      timer: 2000,
+      showConfirmButton: false
+    });
 
   } catch (error) {
-    console.error("Error saving stop:", error);
-    alert("Failed to save stop ❌");
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Failed to save stop"
+    });
+
   }
 };
 

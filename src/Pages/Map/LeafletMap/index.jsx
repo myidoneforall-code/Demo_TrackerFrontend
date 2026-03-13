@@ -256,20 +256,38 @@ const LeafletMap = () => {
 
     const loadStops = async () => {
       try {
+
         const stops = await getStopsData();
+        console.log("Stops:", stops);
+
         stopsRef.current = stops;
 
         stops.forEach((stop) => {
-          const marker = L.marker([stop.lat, stop.lon], {
+
+          if (!stop.location?.coordinates) return;
+
+          const [lon, lat] = stop.location.coordinates;
+
+          const marker = L.marker([lat, lon], {
             icon: stopIcon,
           }).addTo(markersLayer);
 
-          marker.bindPopup(createPopupContent(stop));
+          marker.bindPopup(`
+            <div style="font-size:14px">
+              <b>🚌 Stop:</b> ${stop.stopName}<br/>
+              <b>🛣 Route:</b> ${stop.route}<br/>
+              <b>➡ Direction:</b> ${stop.direction}<br/>
+              <b>📍 Lat:</b> ${lat}<br/>
+              <b>📍 Lon:</b> ${lon}
+            </div>
+          `);
 
           marker.on("click", () => {
-            updateCoords(stop.lat, stop.lon);
+            updateCoords(lat, lon);
           });
+
         });
+
       } catch (err) {
         console.error("Error loading stops:", err);
       }
