@@ -658,11 +658,17 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
 
     const stop = formData[0];
 
-  const payload = {
+    const routeMap = {
+      YELLOW: "FORWARD",
+      BLUE: "BACKWARD"
+    };
+
+    const route = routeMap[stop.route];
+
+    const payload = {
       stopName: stop.stopName,
-      stopId: stop.displayId,     // displayId → stopId
-      direction: stop.direction,
-      route: stop.route,
+      stopId: stop.displayId,
+      route: route,
       district: stop.district,
       state: stop.state,
       location: {

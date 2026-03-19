@@ -673,6 +673,7 @@ export default function DynamicStopTable({ allData = [], setAllData }) {
 
   const columns = [
     "stopName",
+    "route",
     "district",
     "state",
     "latitude",
