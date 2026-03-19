@@ -700,7 +700,7 @@ const buildAddBusPayload = (data) => {
                   <h5 className="mb-3 border-bottom pb-2">🚍 Forward Route</h5>
 
                   {/* Row 1 */}
-                  <Row>
+                  {/* <Row>
                     <Col md={6}>
                       <Input
                         placeholder="From"
@@ -717,6 +717,45 @@ const buildAddBusPayload = (data) => {
                         onChange={e => handleRouteChange('forwardRoute', 'to', e.target.value)}
                         invalid={!!errors.forwardTo}
                       />
+                    </Col>
+                  </Row> */}
+                  <Row>
+                    <Col md={6}>
+                      <Input
+                        type="select"
+                        value={formData.forwardRoute.from}
+                        onChange={e => handleRouteChange('forwardRoute', 'from', e.target.value)}
+                        invalid={!!errors.forwardFrom}
+                      >
+                        <option value="">
+                          {loadingStops ? "Loading..." : "Select From Stop"}
+                        </option>
+
+                        {filteredStops.map(s => (
+                          <option key={s._id} value={s.stopName}>
+                            {s.stopName}
+                          </option>
+                        ))}
+                      </Input>
+                    </Col>
+
+                    <Col md={6}>
+                      <Input
+                        type="select"
+                        value={formData.forwardRoute.to}
+                        onChange={e => handleRouteChange('forwardRoute', 'to', e.target.value)}
+                        invalid={!!errors.forwardTo}
+                      >
+                        <option value="">
+                          {loadingStops ? "Loading..." : "Select To Stop"}
+                        </option>
+
+                        {filteredStops.map(s => (
+                          <option key={s._id} value={s.stopName}>
+                            {s.stopName}
+                          </option>
+                        ))}
+                      </Input>
                     </Col>
                   </Row>
 
@@ -820,25 +859,61 @@ const buildAddBusPayload = (data) => {
               {step === 3 && (
                 <Form>
                   <h5 className="mb-3 border-bottom pb-2">🔁 Return Route</h5>
+
+                  {/* Row 1 - From / To */}
                   <Row>
                     <Col md={6}>
-                      <Input placeholder="From" value={formData.returnRoute.from}
+                      <Input
+                        type="select"
+                        value={formData.returnRoute.from}
                         onChange={e => handleRouteChange('returnRoute', 'from', e.target.value)}
-                        invalid={!!errors.returnFrom} />
+                        invalid={!!errors.returnFrom}
+                      >
+                        <option value="">
+                          {loadingStops ? "Loading..." : "Select From Stop"}
+                        </option>
+
+                        {filteredStops.map(s => (
+                          <option key={s._id} value={s.stopName}>
+                            {s.stopName}
+                          </option>
+                        ))}
+                      </Input>
                     </Col>
+
                     <Col md={6}>
-                      <Input placeholder="To" value={formData.returnRoute.to}
+                      <Input
+                        type="select"
+                        value={formData.returnRoute.to}
                         onChange={e => handleRouteChange('returnRoute', 'to', e.target.value)}
-                        invalid={!!errors.returnTo} />
+                        invalid={!!errors.returnTo}
+                      >
+                        <option value="">
+                          {loadingStops ? "Loading..." : "Select To Stop"}
+                        </option>
+
+                        {filteredStops.map(s => (
+                          <option key={s._id} value={s.stopName}>
+                            {s.stopName}
+                          </option>
+                        ))}
+                      </Input>
                     </Col>
-                    <Col xs={12} className="mt-3">
+                  </Row>
+
+                  {/* Row 2 - Stops */}
+                  <Row className="mt-3">
+                    <Col xs={12}>
                       <Label>Stops</Label>
+
                       {formData.returnRoute.stops.map((stop, i) => (
-                        <div key={i} className="d-flex mb-2 ">
+                        <div key={i} className="d-flex mb-2">
                           <Input
                             type="select"
                             value={stop}
-                            onChange={e => handleStopChange('returnRoute', i, e.target.value)}
+                            onChange={e =>
+                              handleStopChange('returnRoute', i, e.target.value)
+                            }
                           >
                             <option value="">
                               {loadingStops ? "Loading..." : "Select Stop"}
@@ -850,144 +925,122 @@ const buildAddBusPayload = (data) => {
                               </option>
                             ))}
                           </Input>
-                          <Button color="danger" onClick={() => removeStop('returnRoute', i)}>X</Button>
+
+                          <Button
+                            color="danger"
+                            onClick={() => removeStop('returnRoute', i)}
+                          >
+                            X
+                          </Button>
                         </div>
                       ))}
-                      <Button color="secondary" onClick={() => addStop('returnRoute')}>Add Stop</Button>
-                    </Col>
-                                      {/* Row 2 - Trips */}
-                    <Row className="mt-3">
-                      <Col md={6}>
-                        <FormGroup>
-                          <Label>Total Trips (per day) *</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            id="returnTrips"
-                            value={formData.returnTrips}
-                            onChange={handleChange}
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                      {/* Forward Schedule */}
-                    <Row className="mt-3">
-                      <Col xs={12}>
-                        <Label>Return Trip Schedule</Label>
 
-                        {formData.returnRoute.schedules.map((trip, i) => (
-                          <div key={i} className="d-flex mb-2">
-
-                            <Input
-                              type="time"
-                              value={trip.startTime}
-                              onChange={(e) =>
-                                handleScheduleChange("returnRoute", i, e.target.value)
-                              }
-                            />
-
-                            <Button
-                              color="danger"
-                              onClick={() => removeSchedule("returnRoute", i)}
-                            >
-                              X
-                            </Button>
-
-                          </div>
-                        ))}
-
-                        <Button
-                          color="secondary"
-                          onClick={() => addSchedule("returnRoute")}
-                        >
-                          Add Trip
-                        </Button>
-                      </Col>
-                    </Row>
-
-                    <Col className="text-end mt-3">
-                      <Button className="me-2" onClick={handlePrev}>Previous</Button>
-                      {/* <Button color="success" onClick={() => console.log(formData)}>Submit</Button> */}
-                      {/* <Button
-                          color="success"
-                          onClick={async () => {
-                            if (!validateStep(step)) return;
-
-                            try {
-                              const payload = buildAddBusPayload(formData);
-
-                              console.log("payload",payload);
-
-                              const res = await addBusApi(payload);
-
-                              setAllData(prev => [res.bus, ...prev]);
-
-                              setFormData({
-                                deviceId: '',
-                                name: '',
-                                busNumber: '',
-                                type: '',
-                                totalTrips: 1,
-                                forwardTrips: 1,
-                                state: '',
-                                district: '',
-                                forwardRoute: { from: '', to: '', stops: [''], schedules: [] },
-                                returnRoute: { from: '', to: '', stops: [''], schedules: [] }
-                              });
-
-                              setStep(1);
-                              setModalOpen(true);
-
-                            } catch (err) {
-                              console.error("❌ Failed to save bus:", err);
-                              alert(
-                                err?.response?.data?.message || "Failed to save bus"
-                              );
-                            }
-                          }}
-                        >
-                          Submit
-                        </Button> */}
-                        <Button
-                          color="success"
-                          onClick={async () => {
-                            if (!validateStep(step)) return;
-
-                            try {
-                              const payload = buildAddBusPayload(formData);
-
-                              console.log("payload", payload);
-
-                              await addBusApi(payload);
-
-                              await reloadBuses(); // ✅ Refresh table from backend
-
-                              setFormData({
-                                deviceId: '',
-                                name: '',
-                                busNumber: '',
-                                type: '',
-                                forwardTrips: 1,
-                                returnTrips: 1,
-                                state: '',
-                                district: '',
-                                forwardRoute: { from: '', to: '', stops: [''], schedules: [] },
-                                returnRoute: { from: '', to: '', stops: [''], schedules: [] }
-                              });
-
-                              setStep(1);
-                              setModalOpen(true);
-
-                            } catch (err) {
-                              console.error("❌ Failed to save bus:", err);
-                              alert(err?.response?.data?.message || "Failed to save bus");
-                            }
-                          }}
-                        >
-                          Submit
-                        </Button>
+                      <Button
+                        color="secondary"
+                        onClick={() => addStop('returnRoute')}
+                      >
+                        Add Stop
+                      </Button>
                     </Col>
                   </Row>
+
+                  {/* Row 3 - Trips */}
+                  <Row className="mt-3">
+                    <Col md={6}>
+                      <FormGroup>
+                        <Label>Total Trips (per day) *</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          id="returnTrips"
+                          value={formData.returnTrips}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+
+                  {/* Row 4 - Schedule */}
+                  <Row className="mt-3">
+                    <Col xs={12}>
+                      <Label>Return Trip Schedule</Label>
+
+                      {formData.returnRoute.schedules.map((trip, i) => (
+                        <div key={i} className="d-flex mb-2">
+                          <Input
+                            type="time"
+                            value={trip.startTime}
+                            onChange={(e) =>
+                              handleScheduleChange("returnRoute", i, e.target.value)
+                            }
+                          />
+
+                          <Button
+                            color="danger"
+                            onClick={() => removeSchedule("returnRoute", i)}
+                          >
+                            X
+                          </Button>
+                        </div>
+                      ))}
+
+                      <Button
+                        color="secondary"
+                        onClick={() => addSchedule("returnRoute")}
+                      >
+                        Add Trip
+                      </Button>
+                    </Col>
+                  </Row>
+
+                  {/* Row 5 - Buttons */}
+                  <Row className="mt-3">
+                    <Col className="text-end">
+                      <Button className="me-2" onClick={handlePrev}>
+                        Previous
+                      </Button>
+
+                      <Button
+                        color="success"
+                        onClick={async () => {
+                          if (!validateStep(step)) return;
+
+                          try {
+                            const payload = buildAddBusPayload(formData);
+
+                            console.log("payload", payload);
+
+                            await addBusApi(payload);
+
+                            await reloadBuses();
+
+                            setFormData({
+                              deviceId: '',
+                              name: '',
+                              busNumber: '',
+                              type: '',
+                              forwardTrips: 1,
+                              returnTrips: 1,
+                              state: '',
+                              district: '',
+                              forwardRoute: { from: '', to: '', stops: [''], schedules: [] },
+                              returnRoute: { from: '', to: '', stops: [''], schedules: [] }
+                            });
+
+                            setStep(1);
+                            setModalOpen(true);
+
+                          } catch (err) {
+                            console.error("❌ Failed to save bus:", err);
+                            alert(err?.response?.data?.message || "Failed to save bus");
+                          }
+                        }}
+                      >
+                        Submit
+                      </Button>
+                    </Col>
+                  </Row>
+
                 </Form>
               )}
 

@@ -77,7 +77,12 @@ useEffect(() => {
     // map DB fields
     displayId: stopData.stopId || "",
     direction: stopData.direction || "",
-    route: stopData.route || ""
+    route:
+      stopData.route === "FORWARD"
+        ? "YELLOW"
+        : stopData.route === "BACKWARD"
+        ? "BLUE"
+        : ""
   };
 
   setStop(normalizedStop);
@@ -112,6 +117,14 @@ useEffect(() => {
 
     const payload = {
       ...stop,
+
+      route:
+        stop.route === "YELLOW"
+          ? "FORWARD"
+          : stop.route === "BLUE"
+          ? "BACKWARD"
+          : "",
+
       location: {
         type: "Point",
         coordinates: [
