@@ -136,6 +136,8 @@ useEffect(() => {
 
     onSave(payload);
     toggle();
+
+    console.log("edit modal",payload);
   };
 
   if (!stop) return null;
