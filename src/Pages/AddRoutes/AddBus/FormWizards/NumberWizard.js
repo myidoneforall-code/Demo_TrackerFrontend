@@ -1357,9 +1357,20 @@ import { fetchRoutesApi } from "../../../../Services/api/addBus.api";
                   }}
                 >
                   <option value="">Select Stop</option>
-                  {allStops
+                  {/* {allStops
                     .filter(s => s.state === form.state && s.district === form.district)
-                    .map(s => <option key={s._id} value={s.stopId}>{s.stopName}</option>)}
+                    .map(s => <option key={s._id} value={s.stopId}>{s.stopName}</option>)} */}
+                    {allStops
+                      .filter(s =>
+                        s.state === form.state &&
+                        s.district === form.district &&
+                        s.route === "FORWARD"
+                      )
+                      .map(s => (
+                        <option key={s._id} value={s.stopId}>
+                          {s.stopName}
+                        </option>
+                      ))}
                 </select>
                 <button className="btn btn-light border ms-2" onClick={() => {
                   const updated = form.forwardStops.filter((_, idx) => idx !== i);
@@ -1386,9 +1397,20 @@ import { fetchRoutesApi } from "../../../../Services/api/addBus.api";
                   }}
                 >
                   <option value="">Select Stop</option>
-                  {allStops
+                  {/* {allStops
                     .filter(s => s.state === form.state && s.district === form.district)
-                    .map(s => <option key={s._id} value={s.stopId}>{s.stopName}</option>)}
+                    .map(s => <option key={s._id} value={s.stopId}>{s.stopName}</option>)} */}
+                    {allStops
+                      .filter(s =>
+                        s.state === form.state &&
+                        s.district === form.district &&
+                        s.route === "RETURN"
+                      )
+                      .map(s => (
+                        <option key={s._id} value={s.stopId}>
+                          {s.stopName}
+                        </option>
+                      ))}
                 </select>
                 <button className="btn btn-light border ms-2" onClick={() => {
                   const updated = form.returnStops.filter((_, idx) => idx !== i);
