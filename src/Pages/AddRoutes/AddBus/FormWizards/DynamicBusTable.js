@@ -586,13 +586,13 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
         forwardRoute: {
           ...updatedBus.forwardRoute,
           stops: (updatedBus.forwardRoute?.stops || []).map(s =>
-            typeof s === "string" ? s : s.name
+            typeof s === "string" ? s : s.stopID
           )
         },
         returnRoute: {
           ...updatedBus.returnRoute,
           stops: (updatedBus.returnRoute?.stops || []).map(s =>
-            typeof s === "string" ? s : s.name
+            typeof s === "string" ? s : s.stopId
           )
         }
       };

@@ -31,3 +31,7 @@ export const updateBusApi = (id, payload) => {
 export const deleteBusApi = (id) => {
   return api.delete(`/api/add-bus/${id}`);
 };
+
+export const fetchRoutesApi = () => {
+  return api.get("/api/add-bus/routes");
+};

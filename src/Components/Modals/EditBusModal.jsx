@@ -244,14 +244,14 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
           bus.trips
             ?.filter(t => t.direction === "FORWARD")
             .map(t => ({
-              startTime: new Date(t.startTime).toISOString().slice(11,16)
+              startTime: t.startTime   // ✅ DIRECT STRING
             })) || [],
 
         returnSchedules:
           bus.trips
             ?.filter(t => t.direction === "RETURN")
             .map(t => ({
-              startTime: new Date(t.startTime).toISOString().slice(11,16)
+              startTime: t.startTime   // ✅ DIRECT STRING
             })) || []
 
       });

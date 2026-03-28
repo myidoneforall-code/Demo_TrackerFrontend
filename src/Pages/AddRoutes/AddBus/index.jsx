@@ -188,52 +188,67 @@
 
 // export default AddBus;
 
-
 import React, { Suspense, lazy, useState, useEffect } from "react";
 import { Col, Container, Row, Button } from "reactstrap";
-import { fetchBusesApi,updateBusApi } from "../../../Services/api/addBus.api";
-
+import { fetchBusesApi, updateBusApi } from "../../../Services/api/addBus.api";
+import { DateTime } from "luxon";
 
 const NumberWizard = lazy(() => import("./FormWizards/NumberWizard"));
 const DynamicBusTable = lazy(() => import("./FormWizards/DynamicBusTable"));
 
 const AddBus = () => {
-  /* =========================
-     STATE
-  ========================= */
-  const [allData, setAllData] = useState([]); // ❌ no sample data
+
+  const [allData, setAllData] = useState([]);
   const [tableVisible, setTableVisible] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const toggleTable = () => setTableVisible((prev) => !prev);
 
-  /* =========================
-     FETCH DATA ON PAGE LOAD
-  ========================= */
   useEffect(() => {
     loadBuses();
   }, []);
 
-
   const updateBus = async (bus) => {
-      try {
-        await updateBusApi(bus._id, bus);   // 1️⃣ update backend
-        await loadBuses();                  // 2️⃣ reload fresh data
-      } catch (err) {
-        console.error("Failed to update bus:", err);
-      }
-    };
+    try {
+      await updateBusApi(bus._id, bus);
+      await loadBuses();
+    } catch (err) {
+      console.error("Failed to update bus:", err);
+    }
+  };
 
+  /* =========================================
+     🔥 CONVERT UTC → IST (MAIN FIX)
+  ========================================= */
+  const convertTripsToIST = (data) => {
+    return data.map(bus => ({
+      ...bus,
+      trips: (bus.trips || []).map(t => ({
+        ...t,
+        startTimeIST: DateTime.fromISO(t.startTime, { zone: "utc" })
+          .setZone("Asia/Kolkata")
+          .toFormat("HH:mm")
+      }))
+    }));
+  };
 
-  
-
+  /* =========================================
+     FETCH DATA
+  ========================================= */
   const loadBuses = async () => {
     try {
       setLoading(true);
-      const res = await fetchBusesApi(); // ✅ BACKEND HIT
 
-      console.log("aaaaaaaaaaaaaaaaaa",res);
-      setAllData(res);
+      const res = await fetchBusesApi();
+
+      // 🔥 convert here
+      const formatted = convertTripsToIST(res);
+
+      console.log("✅ RAW (UTC):", res);
+      console.log("🔥 IST VIEW:", formatted);
+
+      setAllData(formatted);
+
     } catch (err) {
       console.error("❌ Failed to fetch buses:", err);
     } finally {
@@ -254,13 +269,10 @@ const AddBus = () => {
     >
       <main>
         <Container fluid>
-          {/* ================= PAGE HEADER ================= */}
+
           <header>
             <Row className="m-1 align-items-center">
-              <Col
-                xs={12}
-                className="d-flex justify-content-between align-items-center"
-              >
+              <Col xs={12} className="d-flex justify-content-between align-items-center">
                 <div>
                   <h4 className="main-title mb-0">Add Bus</h4>
                   <ul className="app-line-breadcrumbs mb-3">
@@ -276,7 +288,6 @@ const AddBus = () => {
                   </ul>
                 </div>
 
-                {/* RECORD TOGGLE */}
                 <Button
                   color={tableVisible ? "danger" : "success"}
                   onClick={toggleTable}
@@ -287,7 +298,6 @@ const AddBus = () => {
             </Row>
           </header>
 
-          {/* ================= WIZARD ================= */}
           <Row className="justify-content-center mt-3">
             <Col xs={12} md={10} lg={8} xl={7}>
               <NumberWizard
@@ -300,7 +310,6 @@ const AddBus = () => {
 
           <hr className="my-5" />
 
-          {/* ================= TABLE ================= */}
           <Row className="mt-5">
             <Col xs={12}>
               {tableVisible ? (
@@ -310,21 +319,20 @@ const AddBus = () => {
                   <DynamicBusTable
                     allData={allData}
                     setAllData={setAllData}
-                    onUpdateBus={updateBus} 
+                    onUpdateBus={updateBus}
                   />
                 )
-              )
-               : (
+              ) : (
                 <div
                   className="text-center p-5"
                   style={{ fontStyle: "italic", color: "#888" }}
                 >
                   The bus records table is hidden. Click "Show Records" to view it.
                 </div>
-              )
-              }
+              )}
             </Col>
           </Row>
+
         </Container>
       </main>
     </Suspense>
