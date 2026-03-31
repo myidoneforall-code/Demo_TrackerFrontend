@@ -567,6 +567,7 @@ import{addStopApi,fetchStopsApi} from "../../Services/api/addStop.api"
 
 export default function StopFormWizard({ allStops = [], setAllStops }) {
   const [formData, setFormData] = useState([{
+    deviceID:'',
     displayId: '',
     stopName: '',
     direction: '',
@@ -583,7 +584,7 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
   const [editingIndex, setEditingIndex] = useState(null);
 
   const states = [
-    { name: 'State 1', districts: ['District 1-1', 'District 1-2'] },
+    { name: 'Tamil Nadu', districts: ['Coimbatore', 'Vellore'] },
     { name: 'State 2', districts: ['District 2-1', 'District 2-2'] }
   ];
 
@@ -591,6 +592,7 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
   const validateStep = () => {
     let currentErrors = {};
     formData.forEach((stop, idx) => {
+      if (!stop.deviceID) currentErrors[`displayId_${idx}`] = 'Required';
       if (!stop.displayId) currentErrors[`displayId_${idx}`] = 'Required';
       if (!stop.stopName) currentErrors[`stopName_${idx}`] = 'Required';
       if (!stop.direction) currentErrors[`direction_${idx}`] = 'Required';
@@ -667,7 +669,9 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
 
     const payload = {
       stopName: stop.stopName,
+      deviceID: stop.deviceID,
       stopId: stop.displayId,
+      direction: stop.direction,
       route: route,
       district: stop.district,
       state: stop.state,
@@ -689,6 +693,7 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
 
     setFormData([{
       displayId: '',
+      deviceID: '',
       stopName: '',
       direction: '',
       route: '',
@@ -774,6 +779,7 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
     if (editingIndex === idx) {
       setFormData([{
         displayId: '',
+        deviceID:'',
         stopName: '',
         direction: '',
         route: '',
@@ -799,6 +805,17 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
               {formData.map((stop, index) => (
                 <Card key={index} className="mb-3 p-3 border">
                   <Row className="mb-2">
+                    <Col md={6}>
+                      <FormGroup>
+                        <Label>Device ID *</Label>
+                        <Input
+                          value={stop.deviceID}
+                          onChange={e => handleChange(index, 'deviceID', e.target.value)}
+                          invalid={!!errors[`deviceID_${index}`]}
+                        />
+                        <FormText color="danger">{errors[`deviceID_${index}`]}</FormText>
+                      </FormGroup>
+                    </Col>
                     <Col md={6}>
                       <FormGroup>
                         <Label>Display ID *</Label>
