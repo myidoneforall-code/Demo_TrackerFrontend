@@ -50,15 +50,20 @@
 
 import React, { useState, useEffect } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input, FormText, Row, Col } from "reactstrap";
+import { getStates, getDistricts } from "../../Data/States&City/state&city";
+
 
 export default function EditStopModal({ isOpen, toggle, stopData, onSave }) {
   const [stop, setStop] = useState(stopData || {});
   const [errors, setErrors] = useState({});
+  
 
-  const states = [
-    { name: 'State 1', districts: ['District 1-1', 'District 1-2'] },
-    { name: 'State 2', districts: ['District 2-1', 'District 2-2'] }
-  ];
+  // const states = [
+  //   { name: 'State 1', districts: ['District 1-1', 'District 1-2'] },
+  //   { name: 'State 2', districts: ['District 2-1', 'District 2-2'] }
+  // ];
+
+  const states = getStates();
 
   // useEffect(() => {
   //   setStop(stopData || {});
@@ -208,7 +213,7 @@ useEffect(() => {
                 <Label>State *</Label>
                 <Input type="select" value={stop.state || ""} onChange={(e) => handleChange("state", e.target.value)} invalid={!!errors.state}>
                   <option value="">Select State</option>
-                  {states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                  {states.map(s => <option key={s.isoCode} value={s.isoCode}>{s.name}</option>)}
                 </Input>
                 <FormText color="danger">{errors.state}</FormText>
               </FormGroup>
@@ -218,7 +223,12 @@ useEffect(() => {
                 <Label>District *</Label>
                 <Input type="select" value={stop.district || ""} onChange={(e) => handleChange("district", e.target.value)} invalid={!!errors.district}>
                   <option value="">Select District</option>
-                  {states.find(s => s.name === stop.state)?.districts.map(d => <option key={d} value={d}>{d}</option>)}
+                  {/* {states.find(s => s.name === stop.state)?.districts.map(d => <option key={d} value={d}>{d}</option>)} */}
+                  {getDistricts(stop.state)?.map(d => (
+                      <option key={d.name} value={d.name}>
+                        {d.name}
+                      </option>
+                    ))}
                 </Input>
                 <FormText color="danger">{errors.district}</FormText>
               </FormGroup>

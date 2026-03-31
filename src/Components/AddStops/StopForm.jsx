@@ -563,7 +563,10 @@ import {
   Row, Col, FormText
 } from 'reactstrap';
 // import EditStopModal from "../Modals/EditStopModal";
-import{addStopApi,fetchStopsApi} from "../../Services/api/addStop.api"
+import{addStopApi,fetchStopsApi} from "../../Services/api/addStop.api";
+import QRScanner from '../../utils/QRscanner';
+import DeviceIdInput from '../../Components/DeviceInput/DeviceInput';
+import { getStates, getDistricts } from "../../Data/States&City/state&city";
 
 export default function StopFormWizard({ allStops = [], setAllStops }) {
   const [formData, setFormData] = useState([{
@@ -577,16 +580,20 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
     district: '',
     state: ''
   }]);
+
+  // const [manualEntry, setManualEntry] = useState(false);
+  // const [scanActive, setScanActive] = useState(false); // IMPORTANT
   // const [allStops, setAllStops] = useState([]);
   const [errors, setErrors] = useState({});
   // const [stateFilter, setStateFilter] = useState('');
   // const [districtFilter, setDistrictFilter] = useState('');
   const [editingIndex, setEditingIndex] = useState(null);
 
-  const states = [
-    { name: 'Tamil Nadu', districts: ['Coimbatore', 'Vellore'] },
-    { name: 'State 2', districts: ['District 2-1', 'District 2-2'] }
-  ];
+  // const states = [
+  //   { name: 'State 1', districts: ['Coimbatore', 'Vellore'] },
+  //   { name: 'State 2', districts: ['District 2-1', 'District 2-2'] }
+  // ];
+  const states = getStates();
 
   // ---- Form Logic ----
   const validateStep = () => {
@@ -802,11 +809,13 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
           <CardBody>
             <h4 className="text-center fw-bold mb-3">Stop Details</h4>
             <Form>
-              {formData.map((stop, index) => (
+              {formData.map((stop, index) =>{
+                 const districts = getDistricts(stop.state); // ✅ ADD THIS
+              return (
                 <Card key={index} className="mb-3 p-3 border">
                   <Row className="mb-2">
                     <Col md={6}>
-                      <FormGroup>
+                      {/* <FormGroup>
                         <Label>Device ID *</Label>
                         <Input
                           value={stop.deviceID}
@@ -814,7 +823,14 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
                           invalid={!!errors[`deviceID_${index}`]}
                         />
                         <FormText color="danger">{errors[`deviceID_${index}`]}</FormText>
-                      </FormGroup>
+                      </FormGroup> */}
+                     <DeviceIdInput
+                        value={stop.deviceID}
+                        onChange={(val) =>
+                          handleChange(index, "deviceID", val)
+                        }
+                        error={errors[`deviceID_${index}`]}
+                      />
                     </Col>
                     <Col md={6}>
                       <FormGroup>
@@ -871,9 +887,18 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
                     <Col md={6}>
                       <FormGroup>
                         <Label>State *</Label>
-                        <Input type="select" value={stop.state} onChange={e => handleChange(index, 'state', e.target.value)} invalid={!!errors[`state_${index}`]}>
+                        <Input
+                          type="select"
+                          value={stop.state || ""}
+                          onChange={(e) => handleChange(index, "state", e.target.value)}
+                        >
                           <option value="">Select State</option>
-                          {states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+
+                          {states.map((s) => (
+                            <option key={s.isoCode} value={s.isoCode}>
+                              {s.name}
+                            </option>
+                          ))}
                         </Input>
                         <FormText color="danger">{errors[`state_${index}`]}</FormText>
                       </FormGroup>
@@ -881,9 +906,21 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
                     <Col md={6}>
                       <FormGroup>
                         <Label>District *</Label>
-                        <Input type="select" value={stop.district} onChange={e => handleChange(index, 'district', e.target.value)} invalid={!!errors[`district_${index}`]}>
-                          <option value="">Select District</option>
-                          {states.find(s => s.name === stop.state)?.districts.map(d => <option key={d} value={d}>{d}</option>)}
+                       <Input
+                          type="select"
+                          value={stop.district || ""}
+                          disabled={!stop.state}
+                          onChange={(e) => handleChange(index, "district", e.target.value)}
+                        >
+                          <option value="">
+                            {stop.state ? "Select District" : "Select State First"}
+                          </option>
+
+                          {districts?.map((d) => (
+                            <option key={d.name} value={d.name}>
+                              {d.name}
+                            </option>
+                          ))}
                         </Input>
                         <FormText color="danger">{errors[`district_${index}`]}</FormText>
                       </FormGroup>
@@ -893,7 +930,8 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
                     {formData.length > 1 && <Button color="danger" size="sm" onClick={() => removeStop(index)}>Remove</Button>}
                   </div>
                 </Card>
-              ))}
+              );
+              })}
               <div className="d-flex justify-content-end mt-3 gap-2">
                 {/* <Button color="secondary" onClick={addStop}>+ Add Stop</Button> */}
                 <Button color="success" onClick={handleSubmit}>Submit Stops</Button>
