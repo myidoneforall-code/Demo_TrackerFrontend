@@ -1060,19 +1060,21 @@ import { fetchBusesApi, addBusApi } from "../../../../Services/api/addBus.api";
 import { fetchStopsApi} from "../../../../Services/api/addStop.api";
 import { fetchRoutesApi } from "../../../../Services/api/addBus.api";
 import DeviceIdInput from "../../../../Components/DeviceInput/DeviceInput";
+import { getStates, getDistricts } from "../../../../Data/States&City/state&city";
 
 
   const AddBusDB = ({reloadBuses}) => {
 
     const [allRoutes, setAllRoutes] = useState([]);
     const [allStops, setAllStops] = useState([]);
+  
 
     const [form, setForm] = useState({
       busName: "",
       busNumber: "",
       deviceId: "",
       type: "",
-      state: "",
+      state: "TN",
       district: "",
 
       routeType: "NEW",
@@ -1084,6 +1086,12 @@ import DeviceIdInput from "../../../../Components/DeviceInput/DeviceInput";
       forwardTrips: [{ startTime: "" }],
       returnTrips: [{ startTime: "" }]
     });
+    const states = getStates();
+    const districts = getDistricts(form.state);
+    const filteredRoutes = allRoutes.filter(r =>
+      (!form.state || r.state === form.state) &&
+      (!form.district || r.district === form.district)
+    );
 
     const loadBuses = async () => {
       const res = await fetchBusesApi();
@@ -1107,16 +1115,14 @@ import DeviceIdInput from "../../../../Components/DeviceInput/DeviceInput";
       loadStops();
     }, []);
 
-    // ================= DERIVED =================
-    const states = [...new Set(allStops.map(s => s.state))];
-
-    const districts = [
-      ...new Set(
-        allStops
-          .filter(s => s.state === form.state)
-          .map(s => s.district)
-      )
-    ];
+    useEffect(() => {
+      setForm(prev => ({
+        ...prev,
+        routeId: "",
+        forwardStops: [],
+        returnStops: []
+      }));
+    }, [form.state, form.district]);
 
     // ================= ROUTE =================
     const handleRouteSelect = (id) => {
@@ -1195,7 +1201,7 @@ import DeviceIdInput from "../../../../Components/DeviceInput/DeviceInput";
         busNumber: "",
         deviceId: "",
         type: "",
-        state: "",
+        state: "TN",
         district: "",
         routeType: "NEW",
         routeId: "",
@@ -1272,22 +1278,39 @@ import DeviceIdInput from "../../../../Components/DeviceInput/DeviceInput";
         <div className="col-md-6">
           <select
             className="form-control"
-            value={form.state}
-            onChange={(e) => setForm({ ...form, state: e.target.value, district: "" })}
+            value={form.state || ""}
+            onChange={(e) =>
+              setForm({ ...form, state: e.target.value, district: "" })
+            }
           >
-            <option>Select State</option>
-            {states.map(s => <option key={s}>{s}</option>)}
+            <option value="">Select State</option>
+
+            {states.map((s) => (
+              <option key={s.isoCode} value={s.isoCode}>
+                {s.name}
+              </option>
+            ))}
           </select>
         </div>
         <div className="col-md-6">
           <select
-            className="form-control"
-            value={form.district}
-            onChange={(e) => setForm({ ...form, district: e.target.value })}
-          >
-            <option>Select District</option>
-            {districts.map(d => <option key={d}>{d}</option>)}
-          </select>
+              className="form-control"
+              value={form.district || ""}
+              disabled={!form.state}
+              onChange={(e) =>
+                setForm({ ...form, district: e.target.value })
+              }
+            >
+              <option value="">
+                {form.state ? "Select District" : "Select State First"}
+              </option>
+
+              {districts?.map((d) => (
+                <option key={d.name} value={d.name}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
         </div>
       </div>
 
@@ -1308,18 +1331,29 @@ import DeviceIdInput from "../../../../Components/DeviceInput/DeviceInput";
             <select
               className="form-control mb-3"
               value={form.routeId}
+              disabled={!form.state || !form.district}
               onChange={(e) => handleRouteSelect(e.target.value)}
             >
               <option>Select Route</option>
-              {allRoutes
+              {/* {allRoutes
                 .filter(r =>
                   (!form.state || r.state?.toLowerCase() === form.state?.toLowerCase()) &&
                   (!form.district || r.district?.toLowerCase() === form.district?.toLowerCase())
                   )
                 .map(r => (
                   <option key={r._id} value={r._id}>{r.routeName}</option>
+                ))} */}
+                {filteredRoutes.map(r => (
+                  <option key={r._id} value={r._id}>
+                    {r.routeName}
+                  </option>
                 ))}
             </select>
+            {filteredRoutes.length === 0 && form.routeType === "EXISTING" && (
+              <small className="text-danger">
+                No routes found for selected State & District
+              </small>
+            )}
 
             <div className="mb-3">
               <strong>Forward Stops:</strong>
