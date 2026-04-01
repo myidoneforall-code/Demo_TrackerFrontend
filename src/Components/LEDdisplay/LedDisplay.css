@@ -276,7 +276,8 @@ animation
 /* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
   .led-bus-row {
-    grid-template-columns: 30ch 13fr 4fr 4fr;
+    /* grid-template-columns: 30ch 13fr 4fr 4fr; */
+    grid-template-columns: 1fr 2fr 1fr;
     font-size: 13px;
   }
 

@@ -159,7 +159,7 @@ useEffect(() => {
   setSelectedStop(stop);
 
   const matchedDisplay = ledData.find(
-    (d) => String(d.deviceId) === String(stop.stopId)
+    (d) => String(d.deviceId) === String(stop.deviceID)
   );
 
   console.log("MATCHED:", matchedDisplay); // 🔍 debug
@@ -287,6 +287,7 @@ useEffect(() => {
                     </h6>
                   </div>
                   <small>Display ID : {stop.stopId}</small>
+                  <small>Device ID : {stop.deviceID}</small>
                   <small>Direction : {stop.direction}</small>
                   <br />
                   <div className="mb-2">
