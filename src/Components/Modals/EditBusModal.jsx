@@ -229,15 +229,15 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
         totalTrips: bus.trips?.length || 1,
 
         forwardRoute: {
-          from: forwardStops[0]?.stopId || "",
-          to: forwardStops[forwardStops.length - 1]?.stopId || "",
-          stops: forwardStops.slice(1, -1).map(s => ({ name: s.stopId }))
+          from: forwardStops[0]?.stopName || "",
+          to: forwardStops[forwardStops.length - 1]?.stopName || "",
+          stops: forwardStops.slice(1, -1).map(s => ({ name: s.stopName }))
         },
 
         returnRoute: {
-          from: returnStops[0]?.stopId || "",
-          to: returnStops[returnStops.length - 1]?.stopId || "",
-          stops: returnStops.slice(1, -1).map(s => ({ name: s.stopId }))
+          from: returnStops[0]?.stopName || "",
+          to: returnStops[returnStops.length - 1]?.stopName || "",
+          stops: returnStops.slice(1, -1).map(s => ({ name: s.stopName }))
         },
 
         forwardSchedules:
