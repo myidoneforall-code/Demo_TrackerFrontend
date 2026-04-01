@@ -586,13 +586,13 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
         forwardRoute: {
           ...updatedBus.forwardRoute,
           stops: (updatedBus.forwardRoute?.stops || []).map(s =>
-            typeof s === "string" ? s : s.stopID
+            typeof s === "string" ? s : s.stopName
           )
         },
         returnRoute: {
           ...updatedBus.returnRoute,
           stops: (updatedBus.returnRoute?.stops || []).map(s =>
-            typeof s === "string" ? s : s.stopId
+            typeof s === "string" ? s : s.stopName
           )
         }
       };
@@ -747,8 +747,10 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
             {filteredData.map((bus, index) => {
 
               const stops = bus.route?.forwardStops || [];
-              const from = stops[0]?.stopId || "-";
-              const to = stops[stops.length - 1]?.stopId || "-";
+              // const from = stops[0]?.stopId || "-";
+              // const to = stops[stops.length - 1]?.stopId || "-";
+              const from = stops[0]?.stopName || stops[0]?.stopId || "-";
+              const to = stops[stops.length - 1]?.stopName || stops[stops.length - 1]?.stopId || "-";
 
               return (
 
@@ -888,7 +890,8 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
                           {t.direction}
                         </span>
 
-                        {new Date(t.startTime).toLocaleTimeString()}
+                        {/* {new Date(t.startTime).toLocaleTimeString()} */}
+                        {t.startTime}
 
                       </li>
 
@@ -914,7 +917,7 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
                     {viewBus.route?.forwardStops?.map((s, i) => (
 
                       <li key={i} className="list-group-item">
-                        {s.sequence}. {s.stopId}
+                        {s.sequence}. {s.stopName}
                       </li>
 
                     ))}
@@ -939,7 +942,7 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
                     {viewBus.route?.returnStops?.map((s, i) => (
 
                       <li key={i} className="list-group-item">
-                        {s.sequence}. {s.stopId}
+                        {s.sequence}. {s.stopName}
                       </li>
 
                     ))}

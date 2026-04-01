@@ -1059,6 +1059,8 @@ import React, { useState, useEffect } from "react";
 import { fetchBusesApi, addBusApi } from "../../../../Services/api/addBus.api";
 import { fetchStopsApi} from "../../../../Services/api/addStop.api";
 import { fetchRoutesApi } from "../../../../Services/api/addBus.api";
+import DeviceIdInput from "../../../../Components/DeviceInput/DeviceInput";
+
 
   const AddBusDB = ({reloadBuses}) => {
 
@@ -1218,7 +1220,21 @@ import { fetchRoutesApi } from "../../../../Services/api/addBus.api";
 
       {/* ================= BUS DETAILS ================= */}
       <h5 className="fw-semibold mb-3">Bus Information</h5>
-      <div className="row mb-4 g-3">
+      <div className="row mb-4 g-3 align-items-center">
+                <div className="col-md-6">
+          {/* <input
+            className="form-control"
+            placeholder="Device ID"
+            value={form.deviceId}
+            onChange={(e) => setForm({ ...form, deviceId: e.target.value })}
+          /> */}
+          <DeviceIdInput
+            value={form.deviceId}
+            onChange={(val) =>
+              setForm(prev => ({ ...prev, deviceId: val }))
+            }
+          />
+        </div>
         <div className="col-md-6">
           <input
             className="form-control"
@@ -1233,14 +1249,6 @@ import { fetchRoutesApi } from "../../../../Services/api/addBus.api";
             placeholder="Bus Number"
             value={form.busNumber}
             onChange={(e) => setForm({ ...form, busNumber: e.target.value })}
-          />
-        </div>
-        <div className="col-md-6">
-          <input
-            className="form-control"
-            placeholder="Device ID"
-            value={form.deviceId}
-            onChange={(e) => setForm({ ...form, deviceId: e.target.value })}
           />
         </div>
         <div className="col-md-6">
@@ -1304,7 +1312,10 @@ import { fetchRoutesApi } from "../../../../Services/api/addBus.api";
             >
               <option>Select Route</option>
               {allRoutes
-                .filter(r => r.state === form.state && r.district === form.district)
+                .filter(r =>
+                  (!form.state || r.state?.toLowerCase() === form.state?.toLowerCase()) &&
+                  (!form.district || r.district?.toLowerCase() === form.district?.toLowerCase())
+                  )
                 .map(r => (
                   <option key={r._id} value={r._id}>{r.routeName}</option>
                 ))}

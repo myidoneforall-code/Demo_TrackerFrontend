@@ -92,6 +92,7 @@
 
 
 // StopDetails.jsx
+
 import React, { useState,useEffect } from "react";
 import {
   Container,
@@ -101,7 +102,8 @@ import {
 // import { stopDetails as initialStopDetails } from "../../Data/StopDetails/Stops.Details";
 import { getStopsData } from "../../Data/StopDetails/Stops.Details";
 
-import { buses } from "../../Data/BusDetails/LiveBuses.details";
+// import { getLiveBuses } from "../../Data/BusDetails/LiveBuses.details";
+import { fetchLedDisplayApi } from "../../Services/api/led.api";
 import LedDisplay from "../LEDdisplay/LedDisplay";
 import "./StopDetails.css";
 import EditStopModal from "../Modals/EditStopModal";
@@ -119,6 +121,8 @@ export default function StopDetails() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editStopData, setEditStopData] = useState(null);
 
+  const [ledData, setLedData] = useState([]);
+
   useEffect(() => {
   const loadStops = async () => {
     const data = await getStopsData();
@@ -130,45 +134,43 @@ export default function StopDetails() {
   loadStops();
 }, []);
 
+useEffect(() => {
+  const loadLED = async () => {
+    const res = await fetchLedDisplayApi();
+    console.log("LED DATA:", res); // 🔍 debug
+    setLedData(res);
+  };
+
+  loadLED();
+
+  const interval = setInterval(loadLED, 5000);
+  return () => clearInterval(interval);
+}, []);
+
 
   const handleStopClick = (stop) => {
-    if (selectedStop?.stopId === stop.stopId) {
-      setSelectedStop(null);
-      setMatchingBuses([]);
-      return;
-    }
 
-    setSelectedStop(stop);
+  if (selectedStop?.stopId === stop.stopId) {
+    setSelectedStop(null);
+    setMatchingBuses([]);
+    return;
+  }
 
-    const filteredBuses = buses
-      .map((bus) => {
-        const isLineMatch =
-          (stop.route === "BLUE" && bus.isReturning === false) ||
-          (stop.route === "YELLOW" && bus.isReturning === true);
+  setSelectedStop(stop);
 
-        if (!isLineMatch) return null;
+  const matchedDisplay = ledData.find(
+    (d) => String(d.deviceId) === String(stop.stopId)
+  );
 
-        const route = bus.isReturning ? bus.returnRoute : bus.forwardRoute;
+  console.log("MATCHED:", matchedDisplay); // 🔍 debug
 
-        const stopIndex = route.stops.findIndex(
-          (s) => s.name.toLowerCase().trim() === stop.stopName.toLowerCase().trim()
-        );
+  if (!matchedDisplay) {
+    setMatchingBuses([]);
+    return;
+  }
 
-        if (stopIndex === -1) return null;
-        if (route.currentStopIndex > stopIndex) return null;
-
-        return {
-          ...bus,
-          route,
-          stopIndex,
-          distance: stopIndex - route.currentStopIndex,
-        };
-      })
-      .filter(Boolean);
-
-    filteredBuses.sort((a, b) => a.distance - b.distance);
-    setMatchingBuses(filteredBuses);
-  };
+  setMatchingBuses(matchedDisplay.buses || []);
+};
 
   // ================= FILTER STOPS =================
   const filteredStops = stopDetails.filter(

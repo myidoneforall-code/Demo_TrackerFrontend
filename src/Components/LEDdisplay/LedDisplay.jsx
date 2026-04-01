@@ -147,21 +147,107 @@
 
 
 
+// import React from "react";
+// import "./LedDisplay.css";
+
+// /* ===== TIME HELPER ===== */
+// function timeToMinutes(timeStr) {
+//   if (!timeStr) return null;
+
+//   const [time, meridian] = timeStr.split(" ");
+//   let [hours, minutes] = time.split(":").map(Number);
+
+//   if (meridian === "PM" && hours !== 12) hours += 12;
+//   if (meridian === "AM" && hours === 12) hours = 0;
+
+//   return hours * 60 + minutes;
+// }
+
+// export default function LedDisplay({ stop, buses }) {
+//   if (!stop) return null;
+
+//   const hasBuses = Array.isArray(buses) && buses.length > 0;
+
+//   return (
+//     <div className="led-frame">
+//       {/* ===== HEADER ===== */}
+//       <div className="led-header">
+//         {stop.stopName} - Display ID-{stop.displayId}
+//       </div>
+
+//       <div className="led-sub">
+//         Direction: {stop.direction}
+//       </div>
+
+//       {/* ===== BUS LIST ===== */}
+//       {hasBuses && (
+//         <div className="led-list">
+//           {/* Column Headers */}
+//           {/* <div className="led-bus-row led-header-row">
+//             <div className="col col-name">Bus Name</div>
+//             <div className="col col-route">From → To</div>
+//             <div className="col col-status">Arriving Time</div>
+//             <div className="col col-number">Bus Number</div>
+//           </div> */}
+
+//           {buses.map((bus) => {
+//             const { route, stopIndex } = bus;
+//             const currentIndex = route.currentStopIndex;
+
+//             let statusText = "";
+//             let statusClass = "";
+
+//             /* ===== ETA LOGIC ===== */
+//             if (currentIndex === stopIndex) {
+//               statusText = "ARRIVED";
+//               statusClass = "arrived";
+//             } else if (currentIndex < stopIndex) {
+//               const currentStop = route.stops[currentIndex];
+//               const targetStop = route.stops[stopIndex];
+
+//               if (currentStop?.eta && targetStop?.eta) {
+//                 const diff =
+//                   timeToMinutes(targetStop.eta) -
+//                   timeToMinutes(currentStop.eta);
+
+//                 statusText = diff > 1 ? `IN ${diff} MIN` : "ARRIVING";
+//               } else {
+//                 statusText = "ON THE WAY";
+//               }
+
+//               statusClass = "will-arrive";
+//             }
+
+//             return (
+//               <div key={bus.deviceId} className="led-bus-row">
+//                 <div className="col col-name">{bus.name}</div>
+//                 <div className="col col-route">
+//                   {/* {route.from} → {route.to} */}
+//                   {route.from}
+//                 </div>
+//                 <div className={`col col-status ${statusClass}`}>
+//                   {statusText}
+//                 </div>
+//                 <div className="col col-number">{bus.busNumber}</div>
+//               </div>
+//             );
+//           })}
+//         </div>
+//       )}
+
+//       {/* ===== NO BUS DATA ===== */}
+//       {!hasBuses && (
+//         <div className="led-list">
+//           <div className="led-empty">NO BUSES AVAILABLE</div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+
 import React from "react";
 import "./LedDisplay.css";
-
-/* ===== TIME HELPER ===== */
-function timeToMinutes(timeStr) {
-  if (!timeStr) return null;
-
-  const [time, meridian] = timeStr.split(" ");
-  let [hours, minutes] = time.split(":").map(Number);
-
-  if (meridian === "PM" && hours !== 12) hours += 12;
-  if (meridian === "AM" && hours === 12) hours = 0;
-
-  return hours * 60 + minutes;
-}
 
 export default function LedDisplay({ stop, buses }) {
   if (!stop) return null;
@@ -172,7 +258,7 @@ export default function LedDisplay({ stop, buses }) {
     <div className="led-frame">
       {/* ===== HEADER ===== */}
       <div className="led-header">
-        {stop.stopName} - Display ID-{stop.displayId}
+        {stop.stopName} - Display ID-{stop.stopId}
       </div>
 
       <div className="led-sub">
@@ -182,56 +268,28 @@ export default function LedDisplay({ stop, buses }) {
       {/* ===== BUS LIST ===== */}
       {hasBuses && (
         <div className="led-list">
-          {/* Column Headers */}
-          {/* <div className="led-bus-row led-header-row">
-            <div className="col col-name">Bus Name</div>
-            <div className="col col-route">From → To</div>
-            <div className="col col-status">Arriving Time</div>
-            <div className="col col-number">Bus Number</div>
-          </div> */}
 
-          {buses.map((bus) => {
-            const { route, stopIndex } = bus;
-            const currentIndex = route.currentStopIndex;
+          {buses.map((bus, index) => (
+            <div key={index} className="led-bus-row">
 
-            let statusText = "";
-            let statusClass = "";
-
-            /* ===== ETA LOGIC ===== */
-            if (currentIndex === stopIndex) {
-              statusText = "ARRIVED";
-              statusClass = "arrived";
-            } else if (currentIndex < stopIndex) {
-              const currentStop = route.stops[currentIndex];
-              const targetStop = route.stops[stopIndex];
-
-              if (currentStop?.eta && targetStop?.eta) {
-                const diff =
-                  timeToMinutes(targetStop.eta) -
-                  timeToMinutes(currentStop.eta);
-
-                statusText = diff > 1 ? `IN ${diff} MIN` : "ARRIVING";
-              } else {
-                statusText = "ON THE WAY";
-              }
-
-              statusClass = "will-arrive";
-            }
-
-            return (
-              <div key={bus.deviceId} className="led-bus-row">
-                <div className="col col-name">{bus.name}</div>
-                <div className="col col-route">
-                  {/* {route.from} → {route.to} */}
-                  {route.from}
-                </div>
-                <div className={`col col-status ${statusClass}`}>
-                  {statusText}
-                </div>
-                <div className="col col-number">{bus.busNumber}</div>
+              {/* Bus Name */}
+              <div className="col col-name">
+                {bus.busNo}
               </div>
-            );
-          })}
+
+              {/* Bus Number */}
+              <div className="col col-number">
+                {bus.route}
+              </div>
+
+              {/* ETA */}
+              <div className="col col-status">
+                {bus.eta} min
+              </div>
+
+            </div>
+          ))}
+
         </div>
       )}
 

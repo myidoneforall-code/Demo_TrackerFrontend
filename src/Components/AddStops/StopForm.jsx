@@ -578,7 +578,7 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
     lat: '',
     lon: '',
     district: '',
-    state: ''
+    state: 'TN'
   }]);
 
   // const [manualEntry, setManualEntry] = useState(false);
