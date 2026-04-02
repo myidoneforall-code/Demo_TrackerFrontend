@@ -148,12 +148,12 @@ animation
     inset 0 0 18px rgba(0, 0, 0, 0.95),
     0 0 22px rgba(0, 0, 0, 0.85);
   font-family: "Courier New", monospace;
-  color: #ffcc00; /* YELLOW BASE */
+  color: #ffcc00;
   position: relative;
   overflow: hidden;
 }
 
-/* ================= DOT MATRIX OVERLAY ================= */
+/* ================= DOT MATRIX ================= */
 .led-frame::before {
   content: "";
   position: absolute;
@@ -180,8 +180,7 @@ animation
   font-size: 15px;
   opacity: 0.9;
   margin-bottom: 10px;
-  text-shadow:
-    0 0 4px #ffcc00;
+  text-shadow: 0 0 4px #ffcc00;
 }
 
 /* ================= BUS LIST ================= */
@@ -191,20 +190,21 @@ animation
   gap: 8px;
 }
 
-/* ================= BUS ROW ================= */
+/* ================= BUS ROW (✅ FIXED 3 COL) ================= */
 .led-bus-row {
   display: grid;
-  grid-template-columns: 5ch 2fr 1fr 2fr ; /* 4 columns: Name | Route | Status | Number */
+  grid-template-columns: auto 1fr auto;  /* 🔥 PERFECT LED LAYOUT */
   align-items: center;
   padding: 8px 10px;
   border-bottom: 1px dotted rgba(255, 204, 0, 0.35);
+
   text-shadow:
     0 0 2px #ffcc00,
     0 0 6px #ffcc00,
     0 0 12px #ffcc00,
     0 0 20px rgba(255, 204, 0, 0.85);
+
   filter: brightness(1.15) contrast(1.2);
-  white-space: nowrap;
 }
 
 /* ================= HEADER ROW ================= */
@@ -220,8 +220,10 @@ animation
   padding: 0 10px;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;   /* 🔥 VERY IMPORTANT */
 }
 
+/* ================= COLUMN STYLES ================= */
 .col-name {
   font-size: 16px;
   font-weight: 800;
@@ -242,17 +244,11 @@ animation
     0 0 26px rgba(255, 204, 0, 1);
 }
 
-.col-number {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #ffcc00;
-  text-shadow:
-    0 0 8px #ffcc00,
-    0 0 18px rgba(255, 204, 0, 0.95);
-}
+/* ❌ REMOVE THIS (NOT NEEDED NOW)
+.col-number { }
+*/
 
-/* ================= STATUS STATES ================= */
+/* ================= STATUS ================= */
 .arrived {
   color: #00ff66;
   text-shadow:
@@ -264,24 +260,19 @@ animation
   color: #ffe066;
 }
 
-/* ================= EMPTY STATE ================= */
+/* ================= EMPTY ================= */
 .led-empty {
   text-align: center;
   font-size: 14px;
   opacity: 0.75;
-  text-shadow:
-    0 0 4px #ffcc00;
+  text-shadow: 0 0 4px #ffcc00;
 }
 
 /* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
   .led-bus-row {
-    /* grid-template-columns: 30ch 13fr 4fr 4fr; */
-    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-columns: 2fr 1fr;
+    row-gap: 6px;
     font-size: 13px;
-  }
-
-  .col-number {
-    font-size: 16px;
   }
 }

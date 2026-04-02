@@ -279,7 +279,7 @@ export default function LedDisplay({ stop, buses }) {
 
               {/* Bus Number */}
               <div className="col col-number">
-                {bus.route}
+                {bus.busName}
               </div>
 
               {/* ETA */}
