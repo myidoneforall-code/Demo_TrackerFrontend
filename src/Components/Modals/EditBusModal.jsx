@@ -147,6 +147,7 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
     deviceId: "",
     name: "",
     busNumber: "",
+    registrationNumber:"",
     state: "",
     district: "",
     type: "",

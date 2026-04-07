@@ -569,6 +569,7 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
   const toggleModal = () => setModalOpen(!modalOpen);
 
   const handleEdit = (bus) => {
+    console.log("handle edit",bus);
     setEditingBus(bus);
     setModalOpen(true);
   };
@@ -586,13 +587,17 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
         forwardRoute: {
           ...updatedBus.forwardRoute,
           stops: (updatedBus.forwardRoute?.stops || []).map(s =>
-            typeof s === "string" ? s : s.stopName
+            typeof s === "string"
+              ? { stopId: s, stopName: s }
+              : s
           )
         },
         returnRoute: {
           ...updatedBus.returnRoute,
           stops: (updatedBus.returnRoute?.stops || []).map(s =>
-            typeof s === "string" ? s : s.stopName
+             typeof s === "string"
+              ? { stopId: s, stopName: s }
+              : s
           )
         }
       };
@@ -601,11 +606,50 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
         await onUpdateBus(payload);
       }
 
+      // setAllData(prev =>
+      //   prev.map(row =>
+      //     row._id.toString() === updatedBus._id.toString()
+      //       ? { ...row, ...updatedBus }
+      //       : row
+      //   )
+      // );
+      setAllData(prev =>
+        prev.map(row => {
+          if (row._id.toString() === updatedBus._id.toString()) {
+            return {
+              ...row,
+              busName: updatedBus.busName,
+              busNumber: updatedBus.busNumber, 
+              gpsDeviceId: updatedBus.gpsDeviceId || updatedBus.deviceId,
+              type: updatedBus.type,
+              state: updatedBus.state,
+              district: updatedBus.district,
+              registrationNumber: updatedBus.registrationNumber,
+
+              // 🔥 FIXED ROUTE UPDATE
+              route: {
+                forwardStops: (updatedBus.forwardRoute?.stops || []).map((s, i) => ({
+                  sequence: i + 1,
+                  stopName: s.stopName || s.stopId || s,
+                  stopId: s.stopId || s
+                })),
+                returnStops: (updatedBus.returnRoute?.stops || []).map((s, i) => ({
+                  sequence: i + 1,
+                  stopName: s.stopName || s.stopId || s,
+                  stopId: s.stopId || s
+                }))
+              }
+            };
+          }
+          return row;
+        })
+      );
+
       setEditingBus(null);
 
       Swal.fire({
         title: "Saved!",
-        text: `Bus "${updatedBus.name}" updated`,
+        text: `Bus "${updatedBus.busName}" updated`,
         icon: "success",
         timer: 2000,
         showConfirmButton: false,
@@ -627,7 +671,7 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
     const busId = bus._id;
 
     Swal.fire({
-      title: `Delete Bus "${bus.name}"?`,
+      title: `Delete Bus "${bus.busName}"?`,
       icon: "warning",
       showCancelButton: true
     }).then(async (result) => {
@@ -636,7 +680,10 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
 
       await deleteBusApi(busId);
 
-      setAllData(prev => prev.filter(row => row._id !== busId));
+      // setAllData(prev => prev.filter(row => row._id !== busId));
+      setAllData(prev =>
+          prev.filter(row => row._id.toString() !== busId.toString())
+      );
 
       Swal.fire("Deleted!", "", "success");
 
@@ -860,7 +907,7 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
 
                     <p><b>Name:</b> {viewBus.busName}</p>
                     <p><b>Device:</b> {viewBus.gpsDeviceId}</p>
-                    <p><b>Bus Number:</b> {viewBus.registrationNumber}</p>
+                    <p><b>Bus Number:</b> {viewBus.busNumber}</p>
                     <p><b>State:</b> {viewBus.state}</p>
                     <p><b>District:</b> {viewBus.district}</p>
                     <p><b>Type:</b> {viewBus.type}</p>

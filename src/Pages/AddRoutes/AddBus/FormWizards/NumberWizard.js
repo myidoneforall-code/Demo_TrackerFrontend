@@ -1061,17 +1061,48 @@ import { fetchStopsApi} from "../../../../Services/api/addStop.api";
 import { fetchRoutesApi } from "../../../../Services/api/addBus.api";
 import DeviceIdInput from "../../../../Components/DeviceInput/DeviceInput";
 import { getStates, getDistricts } from "../../../../Data/States&City/state&city";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 
   const AddBusDB = ({reloadBuses}) => {
 
     const [allRoutes, setAllRoutes] = useState([]);
     const [allStops, setAllStops] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+
+    const validate = () => {
+      const newErrors = {};
+
+      if (!form.deviceId) newErrors.deviceId = "Device ID is required";
+      if (!form.busName) newErrors.busName = "Bus Name is required";
+      if (!form.busNumber) newErrors.busNumber = "Bus Number is required";
+      if (!form.type) newErrors.type = "Bus Type is required";
+      if (!form.state) newErrors.state = "State is required";
+      if (!form.district) newErrors.district = "District is required";
+
+      if (form.forwardStops.length === 0)
+        newErrors.forwardStops = "Add at least one forward stop";
+
+      // if (form.returnStops.length === 0)
+      //   newErrors.returnStops = "Add at least one return stop";
+
+      if (form.forwardTrips.some(t => !t.startTime))
+        newErrors.forwardTrips = "Fill all forward trips";
+
+      // if (form.returnTrips.some(t => !t.startTime))
+      //   newErrors.returnTrips = "Fill all return trips";
+
+      setErrors(newErrors);
+
+      return Object.keys(newErrors).length === 0;
+    };
   
 
     const [form, setForm] = useState({
       busName: "",
       busNumber: "",
+      busRegistrationNumber:"",
       deviceId: "",
       type: "",
       state: "TN",
@@ -1113,7 +1144,7 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
       // loadBuses();
       loadRoutes(); 
       loadStops();
-    }, []);
+    }, [form.state, form.district]);
 
     useEffect(() => {
       setForm(prev => ({
@@ -1166,54 +1197,86 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
     };
 
     const handleSubmit = async () => {
-      const payload = {
-        name: form.busName,
-        busNumber: form.busNumber,
-        deviceId: form.deviceId,
-        type: form.type,
-        state: form.state,
-        district: form.district,
-        routeType: form.routeType,   // 🔥 ADD THIS
-        routeId: form.routeId,
-        forwardRoute: {
-          from: form.forwardStops[0],
-          to: form.forwardStops.at(-1),
-          stops: form.forwardStops,
-          schedules: form.forwardTrips
-        },
-        returnRoute: {
-          from: form.returnStops[0],
-          to: form.returnStops.at(-1),
-          stops: form.returnStops,
-          schedules: form.returnTrips
-        }
-      };
 
-      await addBusApi(payload);
-      alert("Bus Added ✅");
+      // 🔥 Prevent double click
+      if (loading) return;
+      const isValid = validate();
+      if (!isValid) return;
 
-      // Reload the buses to update the table
-      await reloadBuses(); // 🔥 SAME AS OLD CODE
+      setLoading(true);
 
-      // Optional: reset form if you want
-      setForm({
-        busName: "",
-        busNumber: "",
-        deviceId: "",
-        type: "",
-        state: "TN",
-        district: "",
-        routeType: "NEW",
-        routeId: "",
-        forwardStops: [],
-        returnStops: [],
-        forwardTrips: [{ startTime: "" }],
-        returnTrips: [{ startTime: "" }]
-      });
+      try {
+        const payload = {
+          name: form.busName,
+          busNumber: form.busNumber,
+          busRegistrationNumber: form.busRegistrationNumber,
+          deviceId: form.deviceId,
+          type: form.type,
+          state: form.state,
+          district: form.district,
+          routeType: form.routeType,
+          routeId: form.routeId,
+          forwardRoute: {
+            from: form.forwardStops[0],
+            to: form.forwardStops.at(-1),
+            stops: form.forwardStops,
+            schedules: form.forwardTrips
+          },
+          returnRoute: {
+            from: form.returnStops[0],
+            to: form.returnStops.at(-1),
+            stops: form.returnStops,
+            schedules: form.returnTrips
+          }
+        };
 
-      console.log("submitted payload ",payload);
+        await addBusApi(payload);
+        await loadRoutes();
+
+        alert("Bus Added ✅");
+
+        await reloadBuses();
+
+        // reset form
+        setForm({
+          busName: "",
+          busNumber: "",
+          busRegistrationNumber:"",
+          deviceId: "",
+          type: "",
+          state: "TN",
+          district: "",
+          routeType: "NEW",
+          routeId: "",
+          forwardStops: [],
+          returnStops: [],
+          forwardTrips: [{ startTime: "" }],
+          returnTrips: [{ startTime: "" }]
+        });
+
+      } catch (err) {
+        console.error("❌ Submit error:", err);
+        alert("Error while saving bus");
+      } finally {
+        // 🔥 enable button again
+        setLoading(false);
+      }
     };
-    
+
+
+    const handleDragEnd = (result, type) => {
+      if (!result.destination) return;
+
+      const items = Array.from(form[type]);
+      const [moved] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, moved);
+
+      setForm(prev => ({
+        ...prev,
+        [type]: items
+      }));
+    };
+        
 
     return (
       <div style={{ maxWidth: "900px", margin: "auto", padding: "24px", background: "#f8fafc", minHeight: "100vh" }}>
@@ -1227,7 +1290,7 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
       {/* ================= BUS DETAILS ================= */}
       <h5 className="fw-semibold mb-3">Bus Information</h5>
       <div className="row mb-4 g-3 align-items-center">
-                <div className="col-md-6">
+                <div className="col-md-12">
           {/* <input
             className="form-control"
             placeholder="Device ID"
@@ -1240,6 +1303,7 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
               setForm(prev => ({ ...prev, deviceId: val }))
             }
           />
+          {errors.deviceId && <small className="text-danger">{errors.deviceId}</small>}
         </div>
         <div className="col-md-6">
           <input
@@ -1248,6 +1312,7 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
             value={form.busName}
             onChange={(e) => setForm({ ...form, busName: e.target.value })}
           />
+          {errors.busName && <small className="text-danger">{errors.busName}</small>}
         </div>
         <div className="col-md-6">
           <input
@@ -1256,10 +1321,20 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
             value={form.busNumber}
             onChange={(e) => setForm({ ...form, busNumber: e.target.value })}
           />
+          {errors.busNumber && <small className="text-danger">{errors.busNumber}</small>}
+        </div>
+                <div className="col-md-6">
+          <input
+            className="form-control"
+            placeholder="Bus Registration Number"
+            value={form.busRegistrationNumber}
+            onChange={(e) => setForm({ ...form, busRegistrationNumber: e.target.value })}
+          />
+          {errors.busName && <small className="text-danger">{errors.busRegistrationNumber}</small>}
         </div>
         <div className="col-md-6">
           <select
-            className="form-control"
+            className={`form-control ${errors.type ? "is-invalid" : ""}`}
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.target.value })}
           >
@@ -1277,7 +1352,7 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
       <div className="row mb-4 g-3">
         <div className="col-md-6">
           <select
-            className="form-control"
+            className={`form-control ${errors.state ? "is-invalid" : ""}`}
             value={form.state || ""}
             onChange={(e) =>
               setForm({ ...form, state: e.target.value, district: "" })
@@ -1294,7 +1369,7 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
         </div>
         <div className="col-md-6">
           <select
-              className="form-control"
+              className={`form-control ${errors.district ? "is-invalid" : ""}`}
               value={form.district || ""}
               disabled={!form.state}
               onChange={(e) =>
@@ -1384,13 +1459,20 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
           </>
         )}
       </div>
+      {errors.forwardStops && (
+          <small className="text-danger">{errors.forwardStops}</small>
+        )}
+
+        {errors.returnStops && (
+          <small className="text-danger">{errors.returnStops}</small>
+        )}
 
       {/* ================= NEW ROUTE STOPS ================= */}
       {form.routeType === "NEW" && (
         <div className="row g-4 mb-4">
           <div className="col-md-6">
             <h5 className="fw-semibold mb-3">Forward Stops</h5>
-            {form.forwardStops.map((stop, i) => (
+            {/* {form.forwardStops.map((stop, i) => (
               <div key={i} className="d-flex mb-2">
                 <select
                   className="form-control"
@@ -1401,11 +1483,11 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
                     setForm({ ...form, forwardStops: updated });
                   }}
                 >
-                  <option value="">Select Stop</option>
+                  <option value="">Select Stop</option> */}
                   {/* {allStops
                     .filter(s => s.state === form.state && s.district === form.district)
                     .map(s => <option key={s._id} value={s.stopId}>{s.stopName}</option>)} */}
-                    {allStops
+                    {/* {allStops
                       .filter(s =>
                         s.state === form.state &&
                         s.district === form.district &&
@@ -1422,13 +1504,72 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
                   setForm({ ...form, forwardStops: updated });
                 }}>✕</button>
               </div>
-            ))}
+            ))} */}
+
+            <DragDropContext onDragEnd={(res) => handleDragEnd(res, "forwardStops")}>
+              <Droppable droppableId="forwardStops">
+                {(provided) => (
+                  <div ref={provided.innerRef} {...provided.droppableProps}>
+
+                    {form.forwardStops.map((stop, i) => (
+                      <Draggable key={i} draggableId={`f-${i}`} index={i}>
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="d-flex mb-2"
+                          >
+                            <span style={{ cursor: "grab", marginRight: 8 }}>☰</span>
+
+                            <select
+                              className="form-control"
+                              value={stop}
+                              onChange={(e) => {
+                                const updated = [...form.forwardStops];
+                                updated[i] = e.target.value;
+                                setForm({ ...form, forwardStops: updated });
+                              }}
+                            >
+                              <option value="">Select Stop</option>
+                              {allStops
+                                .filter(s =>
+                                  s.state === form.state &&
+                                  s.district === form.district &&
+                                  s.route === "FORWARD"
+                                )
+                                .map(s => (
+                                  <option key={s._id} value={s.stopId}>
+                                    {s.stopName}
+                                  </option>
+                                ))}
+                            </select>
+
+                            <button
+                              className="btn btn-light border ms-2"
+                              onClick={() => {
+                                const updated = form.forwardStops.filter((_, idx) => idx !== i);
+                                setForm({ ...form, forwardStops: updated });
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
             <button className="btn btn-outline-primary btn-sm" onClick={() =>
               setForm({ ...form, forwardStops: [...form.forwardStops, ""] })
             }>+ Add Stop</button>
           </div>
 
-          <div className="col-md-6">
+          {/* <div className="col-md-6">
             <h5 className="fw-semibold mb-3">Return Stops</h5>
             {form.returnStops.map((stop, i) => (
               <div key={i} className="d-flex mb-2">
@@ -1441,11 +1582,11 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
                     setForm({ ...form, returnStops: updated });
                   }}
                 >
-                  <option value="">Select Stop</option>
+                  <option value="">Select Stop</option> */}
                   {/* {allStops
                     .filter(s => s.state === form.state && s.district === form.district)
                     .map(s => <option key={s._id} value={s.stopId}>{s.stopName}</option>)} */}
-                    {allStops
+                    {/* {allStops
                       .filter(s =>
                         s.state === form.state &&
                         s.district === form.district &&
@@ -1466,6 +1607,88 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
             <button className="btn btn-outline-primary btn-sm" onClick={() =>
               setForm({ ...form, returnStops: [...form.returnStops, ""] })
             }>+ Add Stop</button>
+          </div>
+        </div> */}
+
+        <div className="col-md-6">
+            <h5 className="fw-semibold mb-3">Return Stops</h5>
+
+            <DragDropContext onDragEnd={(res) => handleDragEnd(res, "returnStops")}>
+              <Droppable droppableId="returnStops">
+                {(provided) => (
+                  <div ref={provided.innerRef} {...provided.droppableProps}>
+
+                    {form.returnStops.map((stop, i) => (
+                      <Draggable key={i} draggableId={`r-${i}`} index={i}>
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className="d-flex mb-2 align-items-center"
+                          >
+                            {/* 🔥 Drag Icon */}
+                            <span
+                              {...provided.dragHandleProps}
+                              style={{ cursor: "grab", marginRight: 8 }}
+                            >
+                              ☰
+                            </span>
+
+                            {/* 🔽 Select */}
+                            <select
+                              className="form-control"
+                              value={stop}
+                              onChange={(e) => {
+                                const updated = [...form.returnStops];
+                                updated[i] = e.target.value;
+                                setForm({ ...form, returnStops: updated });
+                              }}
+                            >
+                              <option value="">Select Stop</option>
+
+                              {allStops
+                                .filter(s =>
+                                  s.state === form.state &&
+                                  s.district === form.district &&
+                                  s.route === "RETURN"
+                                )
+                                .map(s => (
+                                  <option key={s._id} value={s.stopId}>
+                                    {s.stopName}
+                                  </option>
+                                ))}
+                            </select>
+
+                            {/* ❌ Delete */}
+                            <button
+                              className="btn btn-light border ms-2"
+                              onClick={() => {
+                                const updated = form.returnStops.filter((_, idx) => idx !== i);
+                                setForm({ ...form, returnStops: updated });
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+
+            {/* ➕ Add Stop */}
+            <button
+              className="btn btn-outline-primary btn-sm"
+              onClick={() =>
+                setForm({ ...form, returnStops: [...form.returnStops, ""] })
+              }
+            >
+              + Add Stop
+            </button>
           </div>
         </div>
       )}
@@ -1504,10 +1727,24 @@ import { getStates, getDistricts } from "../../../../Data/States&City/state&city
           <button className="btn btn-outline-primary btn-sm" onClick={() => addTrip("return")}>+ Add Trip</button>
         </div>
       </div>
+      {errors.forwardTrips && (
+        <small className="text-danger">{errors.forwardTrips}</small>
+      )}
+
+      {errors.returnTrips && (
+        <small className="text-danger">{errors.returnTrips}</small>
+      )}
 
       {/* ================= SUBMIT ================= */}
       <div className="text-end">
-        <button className="btn btn-primary px-4 py-2" onClick={handleSubmit}>Save Bus</button>
+        {/* <button className="btn btn-primary px-4 py-2" onClick={handleSubmit}>Save Bus</button> */}
+        <button
+          className="btn btn-primary px-4 py-2"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Saving..." : "Save Bus"}
+        </button>
       </div>
 
     </div>
