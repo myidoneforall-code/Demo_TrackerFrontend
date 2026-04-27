@@ -899,6 +899,7 @@ export default function DynamicStopTable({ allData = [], setAllData }) {
           isOpen={modalOpen}
           toggle={toggleModal}
           stopData={editingStop}
+          stops={allData}
           onSave={handleSave}
         />
 

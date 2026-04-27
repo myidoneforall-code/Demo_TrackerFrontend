@@ -582,6 +582,8 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
   const handleSave = async (updatedBus) => {
     try {
 
+      console.log("data from edit model",updatedBus);
+
       const payload = {
         ...updatedBus,
         forwardRoute: {
@@ -618,7 +620,7 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
           if (row._id.toString() === updatedBus._id.toString()) {
             return {
               ...row,
-              busName: updatedBus.busName,
+              busName: updatedBus.name,
               busNumber: updatedBus.busNumber, 
               gpsDeviceId: updatedBus.gpsDeviceId || updatedBus.deviceId,
               type: updatedBus.type,
@@ -649,7 +651,7 @@ export default function DynamicBusTable({ allData, setAllData, onUpdateBus }) {
 
       Swal.fire({
         title: "Saved!",
-        text: `Bus "${updatedBus.busName}" updated`,
+        text: `Bus "${updatedBus.name}" updated`,
         icon: "success",
         timer: 2000,
         showConfirmButton: false,

@@ -593,7 +593,12 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
   //   { name: 'State 1', districts: ['Coimbatore', 'Vellore'] },
   //   { name: 'State 2', districts: ['District 2-1', 'District 2-2'] }
   // ];
+  
   const states = getStates();
+  const reverseRouteMap = {
+    FORWARD: "YELLOW",
+    BACKWARD: "BLUE"
+  };
 
   // ---- Form Logic ----
   const validateStep = () => {
@@ -613,10 +618,28 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
     return Object.keys(currentErrors).length === 0;
   };
 
+  // const handleChange = (index, field, value) => {
+  //   const updatedStops = [...formData];
+  //   updatedStops[index][field] = value;
+  //   if (field === 'state') updatedStops[index].district = '';
+  //   setFormData(updatedStops);
+  // };
   const handleChange = (index, field, value) => {
-    const updatedStops = [...formData];
-    updatedStops[index][field] = value;
+  const updatedStops = [...formData];
+
+  // 🔥 convert UI → DB
+  if (field === "route") {
+      const routeMap = {
+        YELLOW: "FORWARD",
+        BLUE: "BACKWARD"
+      };
+      updatedStops[index][field] = routeMap[value];
+    } else {
+      updatedStops[index][field] = value;
+    }
+
     if (field === 'state') updatedStops[index].district = '';
+
     setFormData(updatedStops);
   };
 
@@ -672,7 +695,7 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
       BLUE: "BACKWARD"
     };
 
-    const route = routeMap[stop.route];
+    const route = stop.route;
 
     const payload = {
       stopName: stop.stopName,
@@ -858,7 +881,9 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
                     <Col md={6}>
                       <FormGroup>
                         <Label>Route *</Label>
-                        <Input type="select" value={stop.route} onChange={e => handleChange(index, 'route', e.target.value)} invalid={!!errors[`route_${index}`]}>
+                        <Input type="select" value={reverseRouteMap[stop.route] || stop.route || ""} 
+                        onChange={e => handleChange(index, 'route', e.target.value)} 
+                        invalid={!!errors[`route_${index}`]}>
                           <option value="">Select Route</option>
                           <option value="YELLOW">YELLOW</option>
                           <option value="BLUE">BLUE</option>

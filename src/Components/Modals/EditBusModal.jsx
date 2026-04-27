@@ -142,6 +142,12 @@ import {
 export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
 
   const [step, setStep] = useState(1);
+  const busTypes = [
+    { label: "AC", value: "AC" },
+    { label: "Non-AC", value: "NON_AC" },
+    { label: "Sleeper", value: "SLEEPER" },
+    { label: "Semi Sleeper", value: "SEMI_SLEEPER" }
+  ];
 
   const [formData, setFormData] = useState({
     deviceId: "",
@@ -162,55 +168,6 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
 
   const [errors, setErrors] = useState({});
 
-
-  /* ===============================
-     LOAD DATA
-  =============================== */
-
-  // useEffect(() => {
-
-  //   if (!bus) return;
-
-  //   setFormData({
-  //     deviceId: bus.gpsDeviceId || "",
-  //     name: bus.busName || "",
-  //     busNumber: bus.registrationNumber || "",
-  //     state: bus.state || "",
-  //     district: bus.district || "",
-  //     type: bus.type || "",
-  //     totalTrips: bus.trips?.length || 1,
-
-  //     forwardRoute: {
-  //       from: bus.route?.forwardStops?.[0]?.stopId || "",
-  //       to: bus.route?.forwardStops?.slice(-1)?.[0]?.stopId || "",
-  //       stops: bus.route?.forwardStops?.map(s => ({ name: s.stopId })) || []
-  //     },
-
-  //     returnRoute: {
-  //       from: bus.route?.returnStops?.[0]?.stopId || "",
-  //       to: bus.route?.returnStops?.slice(-1)?.[0]?.stopId || "",
-  //       stops: bus.route?.returnStops?.map(s => ({ name: s.stopId })) || []
-  //     },
-
-  //     forwardSchedules:
-  //       bus.trips
-  //         ?.filter(t => t.direction === "FORWARD")
-  //         .map(t => ({
-  //           startTime: new Date(t.startTime).toISOString().slice(11,16)
-  //         })) || [],
-
-  //     returnSchedules:
-  //       bus.trips
-  //         ?.filter(t => t.direction === "RETURN")
-  //         .map(t => ({
-  //           startTime: new Date(t.startTime).toISOString().slice(11,16)
-  //         })) || []
-  //   });
-
-  //   setStep(1);
-  //   setErrors({});
-
-  // }, [bus]);
   useEffect(() => {
 
       if (!bus) return;
@@ -232,13 +189,23 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
         forwardRoute: {
           from: forwardStops[0]?.stopName || "",
           to: forwardStops[forwardStops.length - 1]?.stopName || "",
-          stops: forwardStops.slice(1, -1).map(s => ({ name: s.stopName }))
+          // stops: forwardStops.slice(1, -1).map(s => ({ name: s.stopName }))
+          stops: forwardStops.map(s => ({
+            name: s.stopName,
+            sequence: s.sequence,
+            stopId: s.stopId
+          }))
         },
 
         returnRoute: {
           from: returnStops[0]?.stopName || "",
           to: returnStops[returnStops.length - 1]?.stopName || "",
-          stops: returnStops.slice(1, -1).map(s => ({ name: s.stopName }))
+          // stops: returnStops.slice(1, -1).map(s => ({ name: s.stopName }))
+          stops: returnStops.map(s => ({
+            name: s.stopName,
+            sequence: s.sequence,
+            stopId: s.stopId
+          }))
         },
 
         forwardSchedules:
@@ -303,7 +270,6 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
 
   };
 
-
   /* ===============================
      BUS HANDLERS
   =============================== */
@@ -348,29 +314,6 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
   };
 
 
-  const addStop = (route) => {
-
-    setFormData(prev => ({
-      ...prev,
-      [route]: {
-        ...prev[route],
-        stops: [...prev[route].stops, { name: "" }]
-      }
-    }));
-  };
-
-
-  const removeStop = (route, index) => {
-
-    const stops = formData[route].stops.filter((_, i) => i !== index);
-
-    setFormData(prev => ({
-      ...prev,
-      [route]: { ...prev[route], stops }
-    }));
-  };
-
-
   /* ===============================
      TRIP HANDLERS
   =============================== */
@@ -407,29 +350,24 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
     }));
   };
 
-
-  /* ===============================
-     SAVE
-  =============================== */
-
-  // const handleSave = () => {
-
-  //   if (validateStep(step)) {
-
-  //     onSave(formData);
-  //     toggle();
-  //   }
-
-  // };
   const handleSave = () => {
 
-    if (!validateStep(step)) return;
+      // ✅ Validate ALL steps (not just current step)
+      for (let s = 1; s <= 5; s++) {
+        if (!validateStep(s)) {
+          setStep(s); // jump to first error step
+          return;
+        }
+      }
+
+    // if (!validateStep(step)) return;
 
     const payload = {
       _id: formData._id,
       deviceId: formData.deviceId,
       name: formData.name,
       busNumber: formData.busNumber,
+      registrationNumber: formData.busNumber,
       state: formData.state,
       district: formData.district,
       type: formData.type,
@@ -437,14 +375,22 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
       forwardRoute: {
         from: formData.forwardRoute.from,
         to: formData.forwardRoute.to,
-        stops: formData.forwardRoute.stops.map(s => s.name),
+        stops: formData.forwardRoute.stops.map(s => ({
+          stopName: s.name,
+          stopId: s.stopId,
+          sequence: s.sequence
+        })),
         schedules: formData.forwardSchedules
       },
 
       returnRoute: {
         from: formData.returnRoute.from,
         to: formData.returnRoute.to,
-        stops: formData.returnRoute.stops.map(s => s.name),
+        stops: formData.returnRoute.stops.map(s => ({
+          stopName: s.name,
+          stopId: s.stopId,
+          sequence: s.sequence
+        })),
         schedules: formData.returnSchedules
       }
     };
@@ -467,16 +413,17 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
         {/* STEP INDICATOR */}
 
         <div className="mb-3 d-flex gap-2">
-
           {[1,2,3,4,5].map(s => (
-
             <div
               key={s}
-              className={`badge ${step === s ? "bg-primary" : "bg-secondary"}`}
+              onClick={() => setStep(s)}
+              style={{ cursor: "pointer" }}
+              className={`badge ${
+                step === s ? "bg-primary" : step > s ? "bg-success" : "bg-secondary"
+              }`}
             >
               Step {s}
             </div>
-
           ))}
 
         </div>
@@ -507,7 +454,21 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
 
               <Col md={6}>
                 <Label>Bus Type</Label>
-                <Input id="type" value={formData.type} onChange={handleChange}/>
+                <Input
+                  type="select"
+                  id="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Bus Type</option>
+
+                  {busTypes.map(type => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+
+                </Input>
               </Col>
 
             </Row>
@@ -547,24 +508,17 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
 
                 <Label>Stops</Label>
 
-                {formData.forwardRoute.stops.map((stop,i)=>(
-                  <div key={i} className="d-flex mb-2 gap-2">
-
-                    <Input
-                      value={stop.name}
-                      onChange={(e)=>handleStopChange("forwardRoute",i,e.target.value)}
-                    />
-
-                    <Button color="danger" onClick={()=>removeStop("forwardRoute",i)}>
-                      X
-                    </Button>
-
-                  </div>
+                {formData.forwardRoute.stops.length > 2 &&
+                  formData.forwardRoute.stops.slice(1, -1).map((stop, index) => (
+                    <div key={index} className="d-flex mb-2 gap-2 align-items-center">
+                      <span>{index + 2}.</span>
+                      <Input value={stop.name} readOnly />
+                    </div>
                 ))}
-
+{/* 
                 <Button color="secondary" onClick={()=>addStop("forwardRoute")}>
                   Add Stop
-                </Button>
+                </Button> */}
 
               </Col>
 
@@ -641,25 +595,17 @@ export default function EditBusModal({ isOpen, toggle, bus, onSave }) {
               <Col xs={12} className="mt-3">
 
                 <Label>Stops</Label>
-
-                {formData.returnRoute.stops.map((stop,i)=>(
-                  <div key={i} className="d-flex mb-2 gap-2">
-
-                    <Input
-                      value={stop.name}
-                      onChange={(e)=>handleStopChange("returnRoute",i,e.target.value)}
-                    />
-
-                    <Button color="danger" onClick={()=>removeStop("returnRoute",i)}>
-                      X
-                    </Button>
-
-                  </div>
-                ))}
-
+                {formData.returnRoute.stops.length > 2 &&
+                    formData.returnRoute.stops.slice(1, -1).map((stop, index) => (
+                      <div key={index} className="d-flex mb-2 gap-2 align-items-center">
+                        <span>{index + 2}.</span>
+                        <Input value={stop.name} readOnly />
+                      </div>
+                  ))}
+{/* 
                 <Button color="secondary" onClick={()=>addStop("returnRoute")}>
                   Add Stop
-                </Button>
+                </Button> */}
 
               </Col>
 

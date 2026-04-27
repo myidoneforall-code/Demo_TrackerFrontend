@@ -239,7 +239,7 @@ useEffect(() => {
       {/* ================= STOP CARDS ================= */}
       <div className="row g-4 mx-auto">
         {filteredStops.map((stop, index) => {
-          const isYellow = stop.route === "YELLOW";
+          const isYellow = stop.route === "FORWARD";
           const lineColor = isYellow ? "#ffc107" : "#0d6efd";
           const isActive = selectedStop?.stopId === stop.stopId;
 
@@ -278,7 +278,8 @@ useEffect(() => {
 
                 <div className="card-body d-flex flex-column"style={{ paddingRight: 48 }}>
                   <div className="d-flex align-items-start gap-3 mb-3 pe-4">
-                    <span className="bg-primary h-45 w-45 d-flex-center b-r-15 flex-shrink-0">
+                    {/* <span className="bg-primary h-45 w-45 d-flex-center b-r-15 flex-shrink-0"> */}
+                    <span className="h-45 w-45 d-flex-center b-r-15 flex-shrink-0" style={{ backgroundColor: lineColor }}>
                       <i className="ph-bold ph-monitor fs-5"></i>
                     </span>
 

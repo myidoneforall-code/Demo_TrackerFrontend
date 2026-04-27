@@ -53,7 +53,8 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, La
 import { getStates, getDistricts } from "../../Data/States&City/state&city";
 
 
-export default function EditStopModal({ isOpen, toggle, stopData, onSave }) {
+// export default function EditStopModal({ isOpen, toggle, stopData, onSave }) {
+export default function EditStopModal({ isOpen, toggle, stopData, onSave, stops = [] }) {
   const [stop, setStop] = useState(stopData || {});
   const [errors, setErrors] = useState({});
   
@@ -108,6 +109,25 @@ useEffect(() => {
     if (!stop.lon) currentErrors.lon = 'Required';
     if (!stop.state) currentErrors.state = 'Required';
     if (!stop.district) currentErrors.district = 'Required';
+
+    const selectedRoute =
+      stop.route === "YELLOW"
+        ? "FORWARD"
+        : stop.route === "BLUE"
+        ? "BACKWARD"
+        : stop.route;
+
+    const duplicateStop = stops.some(
+      (s) =>
+        s.stopName?.trim().toLowerCase() === stop.stopName?.trim().toLowerCase() &&
+        s.route === selectedRoute &&
+        s._id !== stop._id
+    );
+
+    if (duplicateStop) {
+      currentErrors.stopName = "Stop name already exists in this route";
+      currentErrors.route = "Same stop name and route already exists";
+    }
     setErrors(currentErrors);
     return Object.keys(currentErrors).length === 0;
   };

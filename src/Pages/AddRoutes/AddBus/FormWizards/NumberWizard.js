@@ -1518,7 +1518,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="d-flex mb-2"
+                            className="d-flex align-items-center mb-2"
                           >
                             <span style={{ cursor: "grab", marginRight: 8 }}>☰</span>
 
@@ -1650,7 +1650,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
                                 .filter(s =>
                                   s.state === form.state &&
                                   s.district === form.district &&
-                                  s.route === "RETURN"
+                                  s.route === "BACKWARD"
                                 )
                                 .map(s => (
                                   <option key={s._id} value={s.stopId}>
