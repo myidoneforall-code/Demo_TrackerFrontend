@@ -35,3 +35,12 @@ export const deleteBusApi = (id) => {
 export const fetchRoutesApi = () => {
   return api.get("/api/add-bus/routes");
 };
+
+
+/* =========================
+   🚌 FETCH LIVE BUS STATUS
+   GET /api/bus-live-status
+========================= */
+export const fetchLiveBusesApi = () => {
+  return api.get("/api/bus-live-status");
+};

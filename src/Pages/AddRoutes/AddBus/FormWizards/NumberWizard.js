@@ -1074,7 +1074,10 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
     const validate = () => {
       const newErrors = {};
 
-      if (!form.deviceId) newErrors.deviceId = "Device ID is required";
+      // if (!form.deviceId) newErrors.deviceId = "Device ID is required";
+      if (!/^\d{15}$/.test((form.deviceId || "").trim())) {
+        newErrors.deviceId = "Device ID must be exactly 15 digits";
+      }
       if (!form.busName) newErrors.busName = "Bus Name is required";
       if (!form.busNumber) newErrors.busNumber = "Bus Number is required";
       if (!form.type) newErrors.type = "Bus Type is required";
@@ -1210,7 +1213,8 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
           name: form.busName,
           busNumber: form.busNumber,
           busRegistrationNumber: form.busRegistrationNumber,
-          deviceId: form.deviceId,
+          // deviceId: form.deviceId,
+          deviceId: form.deviceId.trim(),
           type: form.type,
           state: form.state,
           district: form.district,
@@ -1297,12 +1301,33 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
             value={form.deviceId}
             onChange={(e) => setForm({ ...form, deviceId: e.target.value })}
           /> */}
-          <DeviceIdInput
+          {/* <DeviceIdInput
             value={form.deviceId}
             onChange={(val) =>
               setForm(prev => ({ ...prev, deviceId: val }))
             }
-          />
+          /> */}
+
+          <DeviceIdInput
+              value={form.deviceId}
+              onChange={(val) => {
+                const clean = val.replace(/\D/g, "").slice(0, 15);
+
+                setForm(prev => ({ ...prev, deviceId: clean }));
+
+                setErrors((prev) => {
+                  const newErrors = { ...prev };
+
+                  if (clean.length === 15) {
+                    delete newErrors.deviceId;
+                  } else {
+                    newErrors.deviceId = "Device ID must be exactly 15 digits";
+                  }
+
+                  return newErrors;
+                });
+              }}
+            />
           {errors.deviceId && <small className="text-danger">{errors.deviceId}</small>}
         </div>
         <div className="col-md-6">

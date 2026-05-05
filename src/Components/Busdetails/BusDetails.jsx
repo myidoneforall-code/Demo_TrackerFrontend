@@ -723,11 +723,12 @@
 // }
 
 import { useState, useEffect } from "react";
-import { buses as initialBuses } from "../../Data/BusDetails/LiveBuses.details";
+// import { buses as initialBuses } from "../../Data/BusDetails/LiveBuses.details";
 import Timeline from "../../Pages/Apps/Timeline";
 import { timeToMinutes } from "../../Data/Time/Time";
 import EditBusModal from "../../Components/Modals/EditBusModal"; // Your reusable modal
 import "./BusDetails.css";
+import { fetchLiveBusesApi } from "../../Services/api/addBus.api";
 
 /* ================= ADAPTER ================= */
 function getBusView(bus) {
@@ -738,7 +739,7 @@ function getBusView(bus) {
 
     return {
       ...bus,
-      id: bus.busNumber ?? bus.busNumber,
+      id: bus.busNumber ?? bus.busId,
       stops: activeRoute.stops ?? [],
       currentStopIndex: activeRoute.currentStopIndex ?? 0,
       from: activeRoute.from,
@@ -751,14 +752,15 @@ function getBusView(bus) {
 
 /* ================= MAIN COMPONENT ================= */
 export default function BusDetails() {
-  const [liveBuses, setLiveBuses] = useState(
-    initialBuses.map((b) => ({
-      ...b,
-      progress: 0,
-      completedTrips: b.completedTrips ?? 2,
-      totalTrips: b.totalTrips ?? 5,
-    }))
-  );
+  // const [liveBuses, setLiveBuses] = useState(
+  //   initialBuses.map((b) => ({
+  //     ...b,
+  //     progress: 0,
+  //     completedTrips: b.completedTrips ?? 2,
+  //     totalTrips: b.totalTrips ?? 5,
+  //   }))
+  // );
+  const [liveBuses, setLiveBuses] = useState([]);
 
   const [selectedBus, setSelectedBus] = useState(null);
   const [stopShape, setStopShape] = useState("circle");
@@ -773,6 +775,35 @@ export default function BusDetails() {
   // Edit modal state
   const [isEditBusModalOpen, setIsEditBusModalOpen] = useState(false);
   const [editBusData, setEditBusData] = useState(null);
+
+  /* ================= FETCH LIVE BUSES ================= */
+  useEffect(() => {
+    const loadLiveBuses = async () => {
+      try {
+        const res = await fetchLiveBusesApi();
+        const busesData = res?.data || [];
+
+        setLiveBuses(
+          busesData.map((b) => ({
+            ...b,
+            id: b.busNumber || b.busId,
+            progress: 0,
+            completedTrips: b.completedTrips ?? 0,
+            totalTrips: b.totalTrips ?? 0,
+          }))
+        );
+      } catch (err) {
+        console.error("Failed to fetch live buses:", err);
+      }
+    };
+
+    loadLiveBuses();
+
+    const interval = setInterval(loadLiveBuses, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
 
   /* ================= ETA-BASED SMOOTH MOVEMENT ================= */
   useEffect(() => {

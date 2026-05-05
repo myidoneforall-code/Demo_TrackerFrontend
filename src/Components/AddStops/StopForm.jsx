@@ -604,7 +604,10 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
   const validateStep = () => {
     let currentErrors = {};
     formData.forEach((stop, idx) => {
-      if (!stop.deviceID) currentErrors[`displayId_${idx}`] = 'Required';
+      // if (!stop.deviceID) currentErrors[`displayId_${idx}`] = 'Required';
+      if (!/^\d{15}$/.test((stop.deviceID || "").trim())) {
+        currentErrors[`deviceID_${idx}`] = "Device ID must be exactly 15 digits";
+      }
       if (!stop.displayId) currentErrors[`displayId_${idx}`] = 'Required';
       if (!stop.stopName) currentErrors[`stopName_${idx}`] = 'Required';
       if (!stop.direction) currentErrors[`direction_${idx}`] = 'Required';
@@ -684,35 +687,35 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
   //   }]);
   // };
   const handleSubmit = async () => {
-  if (!validateStep()) return;
+    if (!validateStep()) return;
 
-  try {
+    try {
 
-    const stop = formData[0];
+      const stop = formData[0];
 
-    const routeMap = {
-      YELLOW: "FORWARD",
-      BLUE: "BACKWARD"
-    };
+      const routeMap = {
+        YELLOW: "FORWARD",
+        BLUE: "BACKWARD"
+      };
 
-    const route = stop.route;
+      const route = stop.route;
 
-    const payload = {
-      stopName: stop.stopName,
-      deviceID: stop.deviceID,
-      stopId: stop.displayId,
-      direction: stop.direction,
-      route: route,
-      district: stop.district,
-      state: stop.state,
-      location: {
-        type: "Point",
-        coordinates: [
-          parseFloat(stop.lon),
-          parseFloat(stop.lat)
-        ]
-      }
-    };
+      const payload = {
+        stopName: stop.stopName,
+        deviceID: stop.deviceID,
+        stopId: stop.displayId,
+        direction: stop.direction,
+        route: route,
+        district: stop.district,
+        state: stop.state,
+        location: {
+          type: "Point",
+          coordinates: [
+            parseFloat(stop.lon),
+            parseFloat(stop.lat)
+          ]
+        }
+      };
 
     await addStopApi(payload);
 
@@ -741,12 +744,26 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
       showConfirmButton: false
     });
 
+  // } catch (error) {
+
+  //   Swal.fire({
+  //     icon: "error",
+  //     title: "Error",
+  //     text: "Failed to save stop"
+  //   });
+
+  // }
   } catch (error) {
+
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Failed to save stop";
 
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "Failed to save stop"
+      text: message
     });
 
   }
@@ -847,11 +864,34 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
                         />
                         <FormText color="danger">{errors[`deviceID_${index}`]}</FormText>
                       </FormGroup> */}
-                     <DeviceIdInput
+                     {/* <DeviceIdInput
                         value={stop.deviceID}
                         onChange={(val) =>
                           handleChange(index, "deviceID", val)
                         }
+                        error={errors[`deviceID_${index}`]}
+                      /> */}
+                      <DeviceIdInput
+                        value={stop.deviceID}
+                        onChange={(val) => {
+                          const clean = val.replace(/\D/g, "").slice(0, 15);
+
+                          handleChange(index, "deviceID", clean);
+
+                          // 🔥 live validation
+                          setErrors((prev) => {
+                            const newErrors = { ...prev };
+
+                            if (clean.length === 15) {
+                              delete newErrors[`deviceID_${index}`];
+                            } else {
+                              newErrors[`deviceID_${index}`] =
+                                "Device ID must be exactly 15 digits";
+                            }
+
+                            return newErrors;
+                          });
+                        }}
                         error={errors[`deviceID_${index}`]}
                       />
                     </Col>
@@ -885,8 +925,8 @@ export default function StopFormWizard({ allStops = [], setAllStops }) {
                         onChange={e => handleChange(index, 'route', e.target.value)} 
                         invalid={!!errors[`route_${index}`]}>
                           <option value="">Select Route</option>
-                          <option value="YELLOW">YELLOW</option>
-                          <option value="BLUE">BLUE</option>
+                          <option value="YELLOW">YELLOW - Forward</option>
+                          <option value="BLUE">BLUE - Backward</option>
                         </Input>
                         <FormText color="danger">{errors[`route_${index}`]}</FormText>
                       </FormGroup>

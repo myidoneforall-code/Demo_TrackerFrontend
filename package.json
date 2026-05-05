@@ -30,6 +30,7 @@
     "framer-motion": "^12.27.1",
     "glightbox": "^3.3.0",
     "html5-qrcode": "^2.3.8",
+    "india-state-district": "^1.0.5",
     "jquery": "^3.7.1",
     "jstree": "^3.3.17",
     "leaflet": "^1.9.4",
